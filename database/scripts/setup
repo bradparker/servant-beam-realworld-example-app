@@ -3,3 +3,4 @@
 database/scripts/init
 database/scripts/start
 database/scripts/create
+database/scripts/migrate

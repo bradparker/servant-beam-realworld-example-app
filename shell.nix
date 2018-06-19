@@ -12,6 +12,7 @@ let
   hindent = packages.hindent;
   hlint = packages.hlint;
   postgresql = nixpkgs.postgresql;
+  sqitch = nixpkgs.sqitchPg;
 
   env = (import ./. {
     inherit nixpkgs;
@@ -26,6 +27,7 @@ in
       hindent
       hlint
       postgresql
+      sqitch
     ];
     shellHook = drv.shellHook + "
       mkdir -p $PWD/database/pgdata

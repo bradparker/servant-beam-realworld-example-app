@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+cd database/migrations
+sqitch deploy --verify db:$DATABASE_URL
