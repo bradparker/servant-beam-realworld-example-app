@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if ! [ -e $PGDATA/postmaster.pid ]; then
+  pg_ctl -l logs/database.log start
+else
+  echo "Database server already started."
+fi

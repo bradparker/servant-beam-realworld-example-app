@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if ! [ -e $PGDATA/postgresql.conf ]; then
+  pg_ctl init
+else
+  echo "Database cluster already initialised."
+fi

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+if psql postgres --command "SELECT 1 FROM pg_database WHERE datname = 'conduit';" | grep -q 1; then
+  echo "Database already exists."
+else
+  createdb conduit
+  echo "Database created."
+fi

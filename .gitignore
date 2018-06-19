@@ -1,2 +1,4 @@
 .envrc
+database/pgdata
 dist
+logs
