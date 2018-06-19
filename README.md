@@ -18,15 +18,32 @@ For more information on how to this works with other frontends/backends, head ov
   $ nix-shell
   ```
 
-  Along with GHC 8.2.2 and Cabal 2.0.0.1 you'll also get HLint, HIndent and GHCId.
+2. Create .envrc from example and allow contents
 
-2. Run the test suite.
+  ```
+  $ cp .envrc.example .envrc
+  $ direnv allow
+  ```
+
+3. Setup the database.
+
+  ```
+  $ database/scripts/setup
+  ```
+
+4. Run the test suite.
 
   ```
   $ cabal test
   ```
 
-3. Run the app.
+  You can run these in a watch mode using ghcid:
+
+  ```
+  $ ghcid --command 'cabal repl test:spec' --test=Main.main
+  ```
+
+5. Run the app.
 
   ```
   $ cabal run
