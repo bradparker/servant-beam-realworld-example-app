@@ -7,6 +7,7 @@ let
     else nixpkgs.haskell.packages.${compiler};
 
   cabal = packages.cabal-install;
+  direnv = nixpkgs.direnv;
   ghcid = packages.ghcid;
   hindent = packages.hindent;
   hlint = packages.hlint;
@@ -19,6 +20,7 @@ in
   nixpkgs.lib.overrideDerivation env (drv: {
     nativeBuildInputs = drv.nativeBuildInputs ++ [
       cabal
+      direnv
       ghcid
       hindent
       hlint
