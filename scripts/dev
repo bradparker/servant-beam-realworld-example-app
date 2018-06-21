@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+ghcid \
+  --command 'cabal repl' \
+  --test=Main.main \
+  test:spec
