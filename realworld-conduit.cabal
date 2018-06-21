@@ -1,39 +1,68 @@
-name:                realworld-conduit
-version:             0.1.0.0
-synopsis:            Exemplary fullstack Medium.com clone powered by Servant and Beam
-description:         The http://realworld.io specification implemented using Servant for the web application layer and Beam for persistence.
-license:             BSD3
-license-file:        LICENSE
-author:              Brad Parker
-maintainer:          hi@bradparker.com
-build-type:          Simple
-cabal-version:       >=1.10
+-- This file has been generated from package.yaml by hpack version 0.27.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 214c5fbcafaec5c67de1d02134eca3dad273c18bdadd65541acceb04c74240e0
 
-executable realworld-conduit
-  main-is:
-    Main.hs
-  build-depends:
-    base >=4.10 && <4.11
+name:           realworld-conduit
+version:        0.1.0.0
+synopsis:       Exemplary fullstack Medium.com clone powered by Servant and Beam
+description:    The http://realworld.io specification implemented using Servant for the web application layer and Beam for persistence.
+author:         Brad Parker
+maintainer:     hi@bradparker.com
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+library
+  exposed-modules:
+      RealWorld.Conduit.Attribute
+      RealWorld.Conduit.Database
+      RealWorld.Conduit.Users.Database
+      RealWorld.Conduit.Users.Database.Commands
+      RealWorld.Conduit.Users.Database.Queries
+      RealWorld.Conduit.Users.Database.User
+      RealWorld.Conduit.Users.Database.User.Attributes
+  other-modules:
+      Paths_realworld_conduit
   hs-source-dirs:
-    src
-  default-language:
-    Haskell2010
-  ghc-options:
-    -Wall
+      src
+  default-extensions: DeriveAnyClass DeriveGeneric FlexibleContexts FlexibleInstances MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures StandaloneDeriving TypeFamilies TypeSynonymInstances
+  ghc-options: -Wall -fno-warn-partial-type-signatures
+  build-depends:
+      base >=4.10 && <4.11
+    , beam-core
+    , beam-postgres
+    , bytestring
+    , postgresql-simple
+    , scrypt
+    , text
+    , transformers
+    , validation
+  default-language: Haskell2010
 
 test-suite spec
-  type:
-    exitcode-stdio-1.0
-  main-is:
-    Spec.hs
-  build-depends:
-    base >=4.10 && <4.11,
-    hspec
-  hs-source-dirs:
-    spec
-  default-language:
-    Haskell2010
-  ghc-options:
-    -Wall
+  type: exitcode-stdio-1.0
+  main-is: Spec.hs
   other-modules:
-    ExampleSpec
+      RealWorld.Conduit.Spec.Database
+      RealWorld.Conduit.Users.Database.User.AttributesSpec
+      RealWorld.Conduit.Users.DatabaseSpec
+  hs-source-dirs:
+      spec
+  default-extensions: DeriveAnyClass DeriveGeneric FlexibleContexts FlexibleInstances MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures StandaloneDeriving TypeFamilies TypeSynonymInstances
+  ghc-options: -Wall -fno-warn-partial-type-signatures
+  build-depends:
+      base >=4.10 && <4.11
+    , beam-core
+    , beam-postgres
+    , bytestring
+    , hspec
+    , postgresql-simple
+    , realworld-conduit
+    , scrypt
+    , text
+    , transformers
+    , validation
+  default-language: Haskell2010

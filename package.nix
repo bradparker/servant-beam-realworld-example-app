@@ -1,12 +1,18 @@
-{ mkDerivation, base, hspec, stdenv }:
+{ mkDerivation, base, beam-core, beam-postgres, bytestring, hspec
+, postgresql-simple, scrypt, stdenv, text, transformers, validation
+}:
 mkDerivation {
   pname = "realworld-conduit";
   version = "0.1.0.0";
   src = ./.;
-  isLibrary = false;
-  isExecutable = true;
-  executableHaskellDepends = [ base ];
-  testHaskellDepends = [ base hspec ];
+  libraryHaskellDepends = [
+    base beam-core beam-postgres bytestring postgresql-simple scrypt
+    text transformers validation
+  ];
+  testHaskellDepends = [
+    base beam-core beam-postgres bytestring hspec postgresql-simple
+    scrypt text transformers validation
+  ];
   description = "Exemplary fullstack Medium.com clone powered by Servant and Beam";
   license = stdenv.lib.licenses.bsd3;
 }

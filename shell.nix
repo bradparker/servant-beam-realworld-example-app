@@ -11,6 +11,7 @@ let
   ghcid = packages.ghcid;
   hindent = packages.hindent;
   hlint = packages.hlint;
+  hpack = packages.hpack;
   postgresql = nixpkgs.postgresql;
   sqitch = nixpkgs.sqitchPg;
 
@@ -26,6 +27,7 @@ in
       ghcid
       hindent
       hlint
+      hpack
       postgresql
       sqitch
     ];

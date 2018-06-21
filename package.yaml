@@ -1,0 +1,61 @@
+name: realworld-conduit
+version: 0.1.0.0
+synopsis: Exemplary fullstack Medium.com clone powered by Servant and Beam
+description: The http://realworld.io specification implemented using Servant for the web application layer and Beam for persistence.
+license: BSD3
+license-file: LICENSE
+author: Brad Parker
+maintainer: hi@bradparker.com
+
+ghc-options:
+  - -Wall
+  - -fno-warn-partial-type-signatures
+
+dependencies:
+  - base >=4.10 && <4.11
+  - beam-core
+  - beam-postgres
+  - bytestring
+  - postgresql-simple
+  - scrypt
+  - text
+  - transformers
+  - validation
+
+default-extensions:
+  - DeriveAnyClass
+  - DeriveGeneric
+  - FlexibleContexts
+  - FlexibleInstances
+  - MultiParamTypeClasses
+  - NamedFieldPuns
+  - NoImplicitPrelude
+  - OverloadedStrings
+  - PartialTypeSignatures
+  - StandaloneDeriving
+  - TypeFamilies
+  - TypeSynonymInstances
+
+library:
+  source-dirs: src
+  exposed-modules:
+    - RealWorld.Conduit.Attribute
+    - RealWorld.Conduit.Database
+    - RealWorld.Conduit.Users.Database
+    - RealWorld.Conduit.Users.Database.Commands
+    - RealWorld.Conduit.Users.Database.Queries
+    - RealWorld.Conduit.Users.Database.User
+    - RealWorld.Conduit.Users.Database.User.Attributes
+
+tests:
+  spec:
+    main: Spec.hs
+    dependencies:
+      - hspec
+      - realworld-conduit
+    source-dirs:
+      - spec
+    other-modules:
+      - RealWorld.Conduit.Spec.Database
+      - RealWorld.Conduit.Users.Database.User.AttributesSpec
+      - RealWorld.Conduit.Users.DatabaseSpec
