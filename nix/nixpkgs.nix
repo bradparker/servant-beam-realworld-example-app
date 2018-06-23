@@ -3,5 +3,6 @@ config:
 import (fetchFromGitHub {
   owner = "NixOs";
   repo = "NixPkgs";
-  inherit (builtins.fromJSON (builtins.readFile ./nixpkgs.json)) rev sha256;
+  rev = lib.fileContents ./nixpkgs-rev.txt;
+  sha256 = lib.fileContents  ./nixpkgs-sha.txt;
 }) config
