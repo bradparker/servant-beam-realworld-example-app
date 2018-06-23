@@ -1,5 +1,7 @@
 # ![RealWorld Example App](logo.png)
 
+[![Build status](https://badge.buildkite.com/e93e6a16cd2ac665d56a05e535f5b49be8c433d34cf4fe4a3a.svg)](https://buildkite.com/brad-parker/servant-beam-realworld-example-app)
+
 > ### A Servant and Beam codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
 
 ### [Demo](https://github.com/gothinkster/realworld) [RealWorld](https://github.com/gothinkster/realworld)
