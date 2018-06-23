@@ -40,5 +40,5 @@ For more information on how to this works with other frontends/backends, head ov
   You can run these in a watch mode using ghcid:
 
   ```
-  $ scripts/dev
+  $ dev/watch-tests
   ```
