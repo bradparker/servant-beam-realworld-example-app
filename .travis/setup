@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -ex
+
+database/scripts/create
+database/scripts/migrate
+
+cabal configure --enable-tests --verbose=0
+cabal build --verbose=0
