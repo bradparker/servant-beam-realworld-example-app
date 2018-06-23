@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -xu
+
+database/scripts/setup
+cabal configure --enable-tests --verbose=0
+cabal build --verbose=0
+
+cabal test --show-details=always
+EXIT_STATUS=$?
+
+database/scripts/drop
+database/scripts/stop
+
+exit $EXIT_STATUS

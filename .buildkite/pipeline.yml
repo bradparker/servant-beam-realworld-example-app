@@ -1,0 +1,3 @@
+steps:
+  - label: ':female-scientist: Test'
+    command: 'nix-shell --run .buildkite/scripts/test'
