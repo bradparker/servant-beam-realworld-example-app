@@ -1,7 +1,8 @@
-{ nixpkgs ? import ./nix/nixpkgs.nix {}
-, compiler ? "default"
+{ compiler ? "default"
 }:
 let
+  nixpkgs = import ./nix/nixpkgs.nix {};
+
   packages = if compiler == "default"
     then nixpkgs.haskellPackages
     else nixpkgs.haskell.packages.${compiler};
