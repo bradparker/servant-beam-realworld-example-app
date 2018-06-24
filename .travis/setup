@@ -2,6 +2,8 @@
 
 set -ex
 
+source .travis/envrc
+
 database/scripts/create
 database/scripts/migrate
 

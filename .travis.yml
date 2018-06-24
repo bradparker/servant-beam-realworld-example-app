@@ -4,9 +4,6 @@ before_script:
   - nix-shell .travis/shell.nix --run .travis/setup
 services:
   - postgresql
-environment:
-  global:
-    - DATABASE_URL=postgres://localhost:5432/conduit
 cache:
   directories:
     - $HOME/nix.store

@@ -2,4 +2,6 @@
 
 set -ex
 
+source .travis/envrc
+
 cabal test --show-details=always
