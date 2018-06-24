@@ -44,3 +44,7 @@ For more information on how to this works with other frontends/backends, head ov
   ```
   $ dev/watch-tests
   ```
+
+  Which might look something like this:
+
+  [![asciicast](https://asciinema.org/a/YhNioSPZ4SKkHTpLxO7lzTogx.png)](https://asciinema.org/a/YhNioSPZ4SKkHTpLxO7lzTogx)
