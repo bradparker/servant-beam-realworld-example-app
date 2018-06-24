@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+tmux \
+  new-window   "nix-shell --run 'vim .'" \; \
+  split-window "source .envrc && nix-shell --run dev/watch-tests" \; \
+  select-layout even-horizontal
