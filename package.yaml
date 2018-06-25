@@ -16,6 +16,7 @@ dependencies:
   - beam-core
   - beam-postgres
   - bytestring
+  - optparse-applicative
   - postgresql-simple
   - scrypt
   - text
@@ -37,15 +38,25 @@ default-extensions:
   - TypeSynonymInstances
 
 library:
-  source-dirs: src
+  source-dirs:
+    - src
   exposed-modules:
     - RealWorld.Conduit.Attribute
     - RealWorld.Conduit.Database
+    - RealWorld.Conduit.Options
     - RealWorld.Conduit.Users.Database
     - RealWorld.Conduit.Users.Database.Commands
     - RealWorld.Conduit.Users.Database.Queries
     - RealWorld.Conduit.Users.Database.User
     - RealWorld.Conduit.Users.Database.User.Attributes
+
+executables:
+  realworld-conduit:
+    main: Main.hs
+    dependencies:
+      - realworld-conduit
+    source-dirs:
+      - app
 
 tests:
   spec:

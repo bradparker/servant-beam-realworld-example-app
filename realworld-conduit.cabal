@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 214c5fbcafaec5c67de1d02134eca3dad273c18bdadd65541acceb04c74240e0
+-- hash: 28cac3450ab8d0665d6bd8ba6307b0aeffd1d8c6567dc53e3c5964867f13e09c
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -19,6 +19,7 @@ library
   exposed-modules:
       RealWorld.Conduit.Attribute
       RealWorld.Conduit.Database
+      RealWorld.Conduit.Options
       RealWorld.Conduit.Users.Database
       RealWorld.Conduit.Users.Database.Commands
       RealWorld.Conduit.Users.Database.Queries
@@ -35,7 +36,30 @@ library
     , beam-core
     , beam-postgres
     , bytestring
+    , optparse-applicative
     , postgresql-simple
+    , scrypt
+    , text
+    , transformers
+    , validation
+  default-language: Haskell2010
+
+executable realworld-conduit
+  main-is: Main.hs
+  other-modules:
+      Paths_realworld_conduit
+  hs-source-dirs:
+      app
+  default-extensions: DeriveAnyClass DeriveGeneric FlexibleContexts FlexibleInstances MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures StandaloneDeriving TypeFamilies TypeSynonymInstances
+  ghc-options: -Wall -fno-warn-partial-type-signatures
+  build-depends:
+      base >=4.10 && <4.11
+    , beam-core
+    , beam-postgres
+    , bytestring
+    , optparse-applicative
+    , postgresql-simple
+    , realworld-conduit
     , scrypt
     , text
     , transformers
@@ -59,6 +83,7 @@ test-suite spec
     , beam-postgres
     , bytestring
     , hspec
+    , optparse-applicative
     , postgresql-simple
     , realworld-conduit
     , scrypt
