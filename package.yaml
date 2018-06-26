@@ -13,19 +13,27 @@ ghc-options:
 
 dependencies:
   - base >=4.10 && <4.11
+  - aeson
   - beam-core
   - beam-postgres
   - bytestring
   - optparse-applicative
   - postgresql-simple
   - scrypt
+  - servant
+  - servant-server
   - text
   - transformers
   - validation
+  - wai
+  - wai-logger
+  - warp
 
 default-extensions:
+  - DataKinds
   - DeriveAnyClass
   - DeriveGeneric
+  - DuplicateRecordFields
   - FlexibleContexts
   - FlexibleInstances
   - MultiParamTypeClasses
@@ -35,6 +43,7 @@ default-extensions:
   - PartialTypeSignatures
   - StandaloneDeriving
   - TypeFamilies
+  - TypeOperators
   - TypeSynonymInstances
 
 library:
@@ -49,6 +58,9 @@ library:
     - RealWorld.Conduit.Users.Database.Queries
     - RealWorld.Conduit.Users.Database.User
     - RealWorld.Conduit.Users.Database.User.Attributes
+    - RealWorld.Conduit.Web
+    - RealWorld.Conduit.Web.Health
+    - RealWorld.Conduit.Web.Health.Service
 
 executables:
   realworld-conduit:

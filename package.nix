@@ -1,6 +1,7 @@
-{ mkDerivation, base, beam-core, beam-postgres, bytestring, hspec
-, optparse-applicative, postgresql-simple, scrypt, stdenv, text
-, transformers, validation
+{ mkDerivation, aeson, base, beam-core, beam-postgres, bytestring
+, hspec, optparse-applicative, postgresql-simple, scrypt, servant
+, servant-server, stdenv, text, transformers, validation, wai
+, wai-logger, warp
 }:
 mkDerivation {
   pname = "realworld-conduit";
@@ -9,16 +10,19 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    base beam-core beam-postgres bytestring optparse-applicative
-    postgresql-simple scrypt text transformers validation
+    aeson base beam-core beam-postgres bytestring optparse-applicative
+    postgresql-simple scrypt servant servant-server text transformers
+    validation wai wai-logger warp
   ];
   executableHaskellDepends = [
-    base beam-core beam-postgres bytestring optparse-applicative
-    postgresql-simple scrypt text transformers validation
+    aeson base beam-core beam-postgres bytestring optparse-applicative
+    postgresql-simple scrypt servant servant-server text transformers
+    validation wai wai-logger warp
   ];
   testHaskellDepends = [
-    base beam-core beam-postgres bytestring hspec optparse-applicative
-    postgresql-simple scrypt text transformers validation
+    aeson base beam-core beam-postgres bytestring hspec
+    optparse-applicative postgresql-simple scrypt servant
+    servant-server text transformers validation wai wai-logger warp
   ];
   description = "Exemplary fullstack Medium.com clone powered by Servant and Beam";
   license = stdenv.lib.licenses.bsd3;

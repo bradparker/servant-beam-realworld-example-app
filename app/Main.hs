@@ -1,8 +1,25 @@
-module Main (main) where
+module Main
+  ( main
+  ) where
 
-import Control.Monad ((=<<))
-import RealWorld.Conduit.Options (getOptions)
-import System.IO (IO, print)
+import Data.Function (($), (&))
+import Network.Wai.Handler.Warp
+  ( defaultSettings
+  , runSettings
+  , setLogger
+  , setPort
+  )
+import Network.Wai.Logger (withStdoutLogger)
+import RealWorld.Conduit.Options (Options(port), getOptions)
+import RealWorld.Conduit.Web (app)
+import System.IO (IO, putStrLn)
+import Text.Show (show)
+import Data.Semigroup ((<>))
 
 main :: IO ()
-main = print =<< getOptions
+main = do
+  options <- getOptions
+  withStdoutLogger $ \logger -> do
+    let settings = defaultSettings & setPort (port options) & setLogger logger
+    putStrLn ("Server starting on: " <> show (port options))
+    runSettings settings app
