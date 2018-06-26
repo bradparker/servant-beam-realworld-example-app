@@ -43,7 +43,7 @@ import Database.Beam.Postgres.Syntax
   )
 import Database.PostgreSQL.Simple (Connection, connectPostgreSQL)
 import GHC.Generics (Generic)
-import RealWorld.Conduit.Options (DatabaseOptions(..))
+import RealWorld.Conduit.Options (Options(databaseUrl))
 import RealWorld.Conduit.Users.Database.User (UserT)
 import System.IO (IO)
 import Text.Show (Show)
@@ -57,8 +57,8 @@ instance Database Postgres ConduitDb
 conduitDb :: DatabaseSettings Postgres ConduitDb
 conduitDb = defaultDbSettings
 
-openConduitDb :: MonadIO m => DatabaseOptions -> m Connection
-openConduitDb = liftIO . connectPostgreSQL . url
+openConduitDb :: MonadIO m => Options -> m Connection
+openConduitDb = liftIO . connectPostgreSQL . databaseUrl
 
 data UnexpectedEmptyReturn =
   UnexpectedEmptyReturn
