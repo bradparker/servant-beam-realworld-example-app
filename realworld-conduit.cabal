@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: eb64323bb26faa7e07ea299d06060a0073135503ce62a43bc85c88c9425665bd
+-- hash: 364389ab8eb680ca583c64123de7c0338dff2fa7de82f86f2d1ba580eaf3bc5a
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
     , beam-core
     , beam-postgres
     , bytestring
+    , containers
     , data-default
     , optparse-applicative
     , postgresql-simple
@@ -68,6 +69,7 @@ executable realworld-conduit
     , beam-core
     , beam-postgres
     , bytestring
+    , containers
     , data-default
     , optparse-applicative
     , postgresql-simple
@@ -100,6 +102,7 @@ test-suite spec
     , beam-core
     , beam-postgres
     , bytestring
+    , containers
     , data-default
     , hspec
     , optparse-applicative

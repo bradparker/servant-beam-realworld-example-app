@@ -17,6 +17,7 @@ dependencies:
   - beam-core
   - beam-postgres
   - bytestring
+  - containers
   - data-default
   - optparse-applicative
   - postgresql-simple
