@@ -17,6 +17,7 @@ dependencies:
   - beam-core
   - beam-postgres
   - bytestring
+  - data-default
   - optparse-applicative
   - postgresql-simple
   - scrypt
@@ -26,7 +27,7 @@ dependencies:
   - transformers
   - validation
   - wai
-  - wai-logger
+  - wai-extra
   - warp
 
 default-extensions:

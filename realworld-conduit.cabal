@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dff51846df033025d1b80ab06aa6e6904657b79eba105c988c4ff119ab64b7c6
+-- hash: eb64323bb26faa7e07ea299d06060a0073135503ce62a43bc85c88c9425665bd
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -40,6 +40,7 @@ library
     , beam-core
     , beam-postgres
     , bytestring
+    , data-default
     , optparse-applicative
     , postgresql-simple
     , scrypt
@@ -49,7 +50,7 @@ library
     , transformers
     , validation
     , wai
-    , wai-logger
+    , wai-extra
     , warp
   default-language: Haskell2010
 
@@ -67,6 +68,7 @@ executable realworld-conduit
     , beam-core
     , beam-postgres
     , bytestring
+    , data-default
     , optparse-applicative
     , postgresql-simple
     , realworld-conduit
@@ -77,7 +79,7 @@ executable realworld-conduit
     , transformers
     , validation
     , wai
-    , wai-logger
+    , wai-extra
     , warp
   default-language: Haskell2010
 
@@ -98,6 +100,7 @@ test-suite spec
     , beam-core
     , beam-postgres
     , bytestring
+    , data-default
     , hspec
     , optparse-applicative
     , postgresql-simple
@@ -109,6 +112,6 @@ test-suite spec
     , transformers
     , validation
     , wai
-    , wai-logger
+    , wai-extra
     , warp
   default-language: Haskell2010
