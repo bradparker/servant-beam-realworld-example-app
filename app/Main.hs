@@ -16,6 +16,7 @@ import Network.Wai.Middleware.RequestLogger
   , mkRequestLogger
   )
 import Network.Wai.Middleware.RequestLogger.JSON (formatAsJSON)
+import qualified RealWorld.Conduit.Handle as Handle
 import RealWorld.Conduit.Options (Options(port), getOptions)
 import RealWorld.Conduit.Web (app)
 import System.IO (IO)
@@ -40,6 +41,7 @@ jsonLogger =
 main :: IO ()
 main = do
   options <- getOptions
+  handle <- Handle.new options
   logger <- jsonLogger
   putStrLn (encode (startupEvent options))
-  run (port options) (logger app)
+  run (port options) (logger (app handle))

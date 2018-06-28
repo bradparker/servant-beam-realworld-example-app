@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 364389ab8eb680ca583c64123de7c0338dff2fa7de82f86f2d1ba580eaf3bc5a
+-- hash: ed66b9c0c5396cdc6159973b04e75e0ff85d93d7c30ef34bfcda3c6f6194dadb
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -19,6 +19,7 @@ library
   exposed-modules:
       RealWorld.Conduit.Attribute
       RealWorld.Conduit.Database
+      RealWorld.Conduit.Handle
       RealWorld.Conduit.Options
       RealWorld.Conduit.Users.Database
       RealWorld.Conduit.Users.Database.Commands
@@ -44,10 +45,12 @@ library
     , data-default
     , optparse-applicative
     , postgresql-simple
+    , resource-pool
     , scrypt
     , servant
     , servant-server
     , text
+    , time
     , transformers
     , validation
     , wai
@@ -74,10 +77,12 @@ executable realworld-conduit
     , optparse-applicative
     , postgresql-simple
     , realworld-conduit
+    , resource-pool
     , scrypt
     , servant
     , servant-server
     , text
+    , time
     , transformers
     , validation
     , wai
@@ -108,10 +113,12 @@ test-suite spec
     , optparse-applicative
     , postgresql-simple
     , realworld-conduit
+    , resource-pool
     , scrypt
     , servant
     , servant-server
     , text
+    , time
     , transformers
     , validation
     , wai

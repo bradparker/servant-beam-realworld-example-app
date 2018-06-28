@@ -5,13 +5,13 @@ module RealWorld.Conduit.Web.Health.Service
 import Data.Aeson (ToJSON)
 import Data.Bool (Bool)
 import Data.Text (Text)
-import GHC.Exts (Double)
+import Data.Time (NominalDiffTime)
 import GHC.Generics (Generic)
 
 data Service = Service
   { title :: Text
   , status :: Bool
-  , duration :: Double
+  , duration :: NominalDiffTime
   } deriving (Generic)
 
 deriving instance ToJSON Service

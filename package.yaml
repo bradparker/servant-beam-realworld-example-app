@@ -21,10 +21,12 @@ dependencies:
   - data-default
   - optparse-applicative
   - postgresql-simple
+  - resource-pool
   - scrypt
   - servant
   - servant-server
   - text
+  - time
   - transformers
   - validation
   - wai
@@ -54,6 +56,7 @@ library:
   exposed-modules:
     - RealWorld.Conduit.Attribute
     - RealWorld.Conduit.Database
+    - RealWorld.Conduit.Handle
     - RealWorld.Conduit.Options
     - RealWorld.Conduit.Users.Database
     - RealWorld.Conduit.Users.Database.Commands
