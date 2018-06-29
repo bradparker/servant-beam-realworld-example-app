@@ -4,7 +4,7 @@ module RealWorld.Conduit.Web.Health
   ) where
 
 import Control.Applicative (pure)
-import Control.Exception (IOException, catch)
+import Control.Exception (SomeException, catch)
 import Control.Monad.IO.Class (liftIO)
 import Data.Aeson (ToJSON)
 import Data.Bool (Bool(False, True))
@@ -48,7 +48,7 @@ checkDatabase Handle {connectionPool} = do
       , Service.duration = diffUTCTime end start
       }
   where
-    failCheck :: IOException -> IO Bool
+    failCheck :: SomeException -> IO Bool
     failCheck = const (pure False)
     check :: Pool Connection -> IO Bool
     check pool = do
