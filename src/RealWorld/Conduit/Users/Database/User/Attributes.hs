@@ -31,6 +31,8 @@ import RealWorld.Conduit.Users.Database.Queries (findByEmail, findByUsername)
 import RealWorld.Conduit.Users.Database.User (User)
 import qualified RealWorld.Conduit.Users.Database.User as User
 import System.IO (IO)
+import GHC.Generics (Generic)
+import Data.Aeson (ToJSON)
 import Text.Show (Show)
 
 data Attributes f = Attributes
@@ -46,8 +48,10 @@ data ValidationFailure
   | UsernameTaken
   | PasswordLessThan8Chars
 
+deriving instance Generic ValidationFailure
 deriving instance Show ValidationFailure
 deriving instance Eq ValidationFailure
+deriving instance ToJSON ValidationFailure
 
 encryptPassword :: Text -> IO Text
 encryptPassword pass =

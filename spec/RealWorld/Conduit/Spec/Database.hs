@@ -8,7 +8,6 @@ import Data.ByteString.Char8 (pack)
 import Data.Functor ((<$>))
 import Database.PostgreSQL.Simple (Connection, begin, close, rollback)
 import RealWorld.Conduit.Database (openConduitDb)
-import RealWorld.Conduit.Options (Options(Options, databaseUrl, port))
 import System.Environment (getEnv)
 import System.IO (IO)
 
@@ -17,7 +16,7 @@ withConnection = bracket openConnection closeConnection
   where
     openConnection = do
       databaseUrl <- pack <$> getEnv "DATABASE_URL"
-      conn <- openConduitDb (Options {databaseUrl, port = 5000})
+      conn <- openConduitDb databaseUrl
       begin conn
       pure conn
     closeConnection conn = do

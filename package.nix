@@ -1,9 +1,10 @@
 { mkDerivation, aeson, base, beam-core, beam-postgres, bytestring
-, containers, data-default, hspec, lens, optparse-applicative
-, postgresql-simple, resource-pool, scrypt, servant, servant-server
-, servant-swagger, servant-swagger-ui, servant-swagger-ui-core
-, stdenv, swagger2, text, time, transformers, validation, wai
-, wai-extra, warp
+, containers, data-default, hspec, hspec-wai, hspec-wai-json
+, http-types, insert-ordered-containers, jwt, lens
+, optparse-applicative, postgresql-simple, resource-pool, scrypt
+, servant, servant-server, servant-swagger, servant-swagger-ui
+, servant-swagger-ui-core, stdenv, swagger2, text, time
+, transformers, validation, wai, wai-extra, warp
 }:
 mkDerivation {
   pname = "realworld-conduit";
@@ -13,24 +14,27 @@ mkDerivation {
   isExecutable = true;
   libraryHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
-    data-default lens optparse-applicative postgresql-simple
-    resource-pool scrypt servant servant-server servant-swagger
-    servant-swagger-ui servant-swagger-ui-core swagger2 text time
-    transformers validation wai wai-extra warp
+    data-default http-types insert-ordered-containers jwt lens
+    optparse-applicative postgresql-simple resource-pool scrypt servant
+    servant-server servant-swagger servant-swagger-ui
+    servant-swagger-ui-core swagger2 text time transformers validation
+    wai wai-extra warp
   ];
   executableHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
-    data-default lens optparse-applicative postgresql-simple
-    resource-pool scrypt servant servant-server servant-swagger
-    servant-swagger-ui servant-swagger-ui-core swagger2 text time
-    transformers validation wai wai-extra warp
+    data-default http-types insert-ordered-containers jwt lens
+    optparse-applicative postgresql-simple resource-pool scrypt servant
+    servant-server servant-swagger servant-swagger-ui
+    servant-swagger-ui-core swagger2 text time transformers validation
+    wai wai-extra warp
   ];
   testHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
-    data-default hspec lens optparse-applicative postgresql-simple
-    resource-pool scrypt servant servant-server servant-swagger
-    servant-swagger-ui servant-swagger-ui-core swagger2 text time
-    transformers validation wai wai-extra warp
+    data-default hspec hspec-wai hspec-wai-json http-types
+    insert-ordered-containers jwt lens optparse-applicative
+    postgresql-simple resource-pool scrypt servant servant-server
+    servant-swagger servant-swagger-ui servant-swagger-ui-core swagger2
+    text time transformers validation wai wai-extra warp
   ];
   description = "Exemplary fullstack Medium.com clone powered by Servant and Beam";
   license = stdenv.lib.licenses.bsd3;

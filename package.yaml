@@ -18,6 +18,9 @@ dependencies:
   - bytestring
   - containers
   - data-default
+  - http-types
+  - insert-ordered-containers
+  - jwt
   - lens
   - optparse-applicative
   - postgresql-simple
@@ -44,11 +47,13 @@ default-extensions:
   - DuplicateRecordFields
   - FlexibleContexts
   - FlexibleInstances
+  - KindSignatures
   - MultiParamTypeClasses
   - NamedFieldPuns
   - NoImplicitPrelude
   - OverloadedStrings
   - PartialTypeSignatures
+  - ScopedTypeVariables
   - StandaloneDeriving
   - TypeFamilies
   - TypeOperators
@@ -67,10 +72,14 @@ library:
     - RealWorld.Conduit.Users.Database.Queries
     - RealWorld.Conduit.Users.Database.User
     - RealWorld.Conduit.Users.Database.User.Attributes
+    - RealWorld.Conduit.Users.Web
+    - RealWorld.Conduit.Users.Web.Account
+    - RealWorld.Conduit.Users.Web.Register
     - RealWorld.Conduit.Web
     - RealWorld.Conduit.Web.API
     - RealWorld.Conduit.Web.Health
     - RealWorld.Conduit.Web.Health.Service
+    - RealWorld.Conduit.Web.Namespace
     - RealWorld.Conduit.Web.Swagger
 
 executables:
@@ -86,6 +95,8 @@ tests:
     main: Spec.hs
     dependencies:
       - hspec
+      - hspec-wai
+      - hspec-wai-json
       - realworld-conduit
     source-dirs:
       - spec
@@ -93,3 +104,6 @@ tests:
       - RealWorld.Conduit.Spec.Database
       - RealWorld.Conduit.Users.Database.User.AttributesSpec
       - RealWorld.Conduit.Users.DatabaseSpec
+      - Test.Hspec.Wai.Extended
+    default-extensions:
+      QuasiQuotes

@@ -12,6 +12,7 @@ import Control.Applicative (pure)
 import Control.Exception (Exception, throwIO)
 import Control.Monad ((<=<))
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.ByteString (ByteString)
 import Data.Function (($), (.))
 import Data.Functor (fmap)
 import Data.Maybe (Maybe, listToMaybe, maybe)
@@ -45,7 +46,6 @@ import Database.Beam.Postgres.Syntax
   )
 import Database.PostgreSQL.Simple (Connection, connectPostgreSQL)
 import GHC.Generics (Generic)
-import RealWorld.Conduit.Options (Options(databaseUrl))
 import RealWorld.Conduit.Users.Database.User (UserT)
 import System.IO (IO)
 import Text.Show (Show)
@@ -59,8 +59,8 @@ instance Database Postgres ConduitDb
 conduitDb :: DatabaseSettings Postgres ConduitDb
 conduitDb = defaultDbSettings
 
-openConduitDb :: MonadIO m => Options -> m Connection
-openConduitDb = liftIO . connectPostgreSQL . databaseUrl
+openConduitDb :: MonadIO m => ByteString -> m Connection
+openConduitDb = liftIO . connectPostgreSQL
 
 data UnexpectedEmptyReturn =
   UnexpectedEmptyReturn
