@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+database/scripts/drop
+database/scripts/create
+database/scripts/migrate
