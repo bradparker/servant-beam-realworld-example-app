@@ -26,8 +26,7 @@ import Servant.API ((:>), Get, JSON)
 import System.IO (IO)
 
 data Status = Status
-  { revision :: Text
-  , title :: Text
+  { title :: Text
   , status :: Bool
   , services :: [Service]
   } deriving (Generic)
@@ -60,8 +59,7 @@ health handle = do
   services <- liftIO $ sequenceA [checkDatabase handle]
   pure
     Status
-      { revision = "HEAD"
-      , title = "Realworld Conduit Api"
+      { title = "Realworld Conduit Api"
       , status = all Service.status services
       , services
       }
