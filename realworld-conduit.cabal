@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: ed66b9c0c5396cdc6159973b04e75e0ff85d93d7c30ef34bfcda3c6f6194dadb
+-- hash: fb18c368871231d2bf0398c75cd7d35af5d998a80919af114934cf46d1b0dfa4
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -27,14 +27,16 @@ library
       RealWorld.Conduit.Users.Database.User
       RealWorld.Conduit.Users.Database.User.Attributes
       RealWorld.Conduit.Web
+      RealWorld.Conduit.Web.API
       RealWorld.Conduit.Web.Health
       RealWorld.Conduit.Web.Health.Service
+      RealWorld.Conduit.Web.Swagger
   other-modules:
       Paths_realworld_conduit
   hs-source-dirs:
       src
   default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
-  ghc-options: -Wall -fno-warn-partial-type-signatures
+  ghc-options: -Wall
   build-depends:
       aeson
     , base >=4.10 && <4.11
@@ -43,12 +45,17 @@ library
     , bytestring
     , containers
     , data-default
+    , lens
     , optparse-applicative
     , postgresql-simple
     , resource-pool
     , scrypt
     , servant
     , servant-server
+    , servant-swagger
+    , servant-swagger-ui
+    , servant-swagger-ui-core
+    , swagger2
     , text
     , time
     , transformers
@@ -65,7 +72,7 @@ executable realworld-conduit
   hs-source-dirs:
       app
   default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
-  ghc-options: -Wall -fno-warn-partial-type-signatures
+  ghc-options: -Wall
   build-depends:
       aeson
     , base >=4.10 && <4.11
@@ -74,6 +81,7 @@ executable realworld-conduit
     , bytestring
     , containers
     , data-default
+    , lens
     , optparse-applicative
     , postgresql-simple
     , realworld-conduit
@@ -81,6 +89,10 @@ executable realworld-conduit
     , scrypt
     , servant
     , servant-server
+    , servant-swagger
+    , servant-swagger-ui
+    , servant-swagger-ui-core
+    , swagger2
     , text
     , time
     , transformers
@@ -100,7 +112,7 @@ test-suite spec
   hs-source-dirs:
       spec
   default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
-  ghc-options: -Wall -fno-warn-partial-type-signatures
+  ghc-options: -Wall
   build-depends:
       aeson
     , base >=4.10 && <4.11
@@ -110,6 +122,7 @@ test-suite spec
     , containers
     , data-default
     , hspec
+    , lens
     , optparse-applicative
     , postgresql-simple
     , realworld-conduit
@@ -117,6 +130,10 @@ test-suite spec
     , scrypt
     , servant
     , servant-server
+    , servant-swagger
+    , servant-swagger-ui
+    , servant-swagger-ui-core
+    , swagger2
     , text
     , time
     , transformers

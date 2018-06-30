@@ -13,6 +13,7 @@ import Data.Functor (void)
 import Data.Int (Int)
 import Data.List (all)
 import Data.Pool (Pool, withResource)
+import Data.Swagger (ToSchema)
 import Data.Text (Text)
 import Data.Time (diffUTCTime, getCurrentTime)
 import Data.Traversable (sequenceA)
@@ -32,6 +33,7 @@ data Status = Status
   } deriving (Generic)
 
 deriving instance ToJSON Status
+deriving instance ToSchema Status
 
 type Health = "health" :> Get '[ JSON] Status
 

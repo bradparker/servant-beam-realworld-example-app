@@ -18,12 +18,17 @@ dependencies:
   - bytestring
   - containers
   - data-default
+  - lens
   - optparse-applicative
   - postgresql-simple
   - resource-pool
   - scrypt
   - servant
   - servant-server
+  - servant-swagger
+  - servant-swagger-ui
+  - servant-swagger-ui-core
+  - swagger2
   - text
   - time
   - transformers
@@ -63,8 +68,10 @@ library:
     - RealWorld.Conduit.Users.Database.User
     - RealWorld.Conduit.Users.Database.User.Attributes
     - RealWorld.Conduit.Web
+    - RealWorld.Conduit.Web.API
     - RealWorld.Conduit.Web.Health
     - RealWorld.Conduit.Web.Health.Service
+    - RealWorld.Conduit.Web.Swagger
 
 executables:
   realworld-conduit:

@@ -1,8 +1,9 @@
 { mkDerivation, aeson, base, beam-core, beam-postgres, bytestring
-, containers, data-default, hspec, optparse-applicative
+, containers, data-default, hspec, lens, optparse-applicative
 , postgresql-simple, resource-pool, scrypt, servant, servant-server
-, stdenv, text, time, transformers, validation, wai, wai-extra
-, warp
+, servant-swagger, servant-swagger-ui, servant-swagger-ui-core
+, stdenv, swagger2, text, time, transformers, validation, wai
+, wai-extra, warp
 }:
 mkDerivation {
   pname = "realworld-conduit";
@@ -12,21 +13,24 @@ mkDerivation {
   isExecutable = true;
   libraryHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
-    data-default optparse-applicative postgresql-simple resource-pool
-    scrypt servant servant-server text time transformers validation wai
-    wai-extra warp
+    data-default lens optparse-applicative postgresql-simple
+    resource-pool scrypt servant servant-server servant-swagger
+    servant-swagger-ui servant-swagger-ui-core swagger2 text time
+    transformers validation wai wai-extra warp
   ];
   executableHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
-    data-default optparse-applicative postgresql-simple resource-pool
-    scrypt servant servant-server text time transformers validation wai
-    wai-extra warp
+    data-default lens optparse-applicative postgresql-simple
+    resource-pool scrypt servant servant-server servant-swagger
+    servant-swagger-ui servant-swagger-ui-core swagger2 text time
+    transformers validation wai wai-extra warp
   ];
   testHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
-    data-default hspec optparse-applicative postgresql-simple
-    resource-pool scrypt servant servant-server text time transformers
-    validation wai wai-extra warp
+    data-default hspec lens optparse-applicative postgresql-simple
+    resource-pool scrypt servant servant-server servant-swagger
+    servant-swagger-ui servant-swagger-ui-core swagger2 text time
+    transformers validation wai wai-extra warp
   ];
   description = "Exemplary fullstack Medium.com clone powered by Servant and Beam";
   license = stdenv.lib.licenses.bsd3;
