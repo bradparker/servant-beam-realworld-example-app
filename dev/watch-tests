@@ -3,4 +3,5 @@
 ghcid \
   --command 'cabal repl' \
   --test=Main.main \
+  --restart *.cabal \
   test:spec
