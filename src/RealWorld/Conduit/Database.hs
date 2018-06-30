@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
+
 module RealWorld.Conduit.Database
   ( ConduitDb(..)
   , conduitDb

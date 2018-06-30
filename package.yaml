@@ -9,7 +9,6 @@ maintainer: hi@bradparker.com
 
 ghc-options:
   - -Wall
-  - -fno-warn-partial-type-signatures
 
 dependencies:
   - base >=4.10 && <4.11
