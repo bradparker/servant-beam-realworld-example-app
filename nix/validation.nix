@@ -1,13 +1,16 @@
-with import <nixpkgs> {};
-{ packages
-}:
+packages: config:
 let
+  inherit (import <nixpkgs> {})
+    fetchFromGitHub
+    lib;
+
   validation-source = fetchFromGitHub {
     owner = "qfpl";
     repo = "validation";
-    inherit (builtins.fromJSON (builtins.readFile ./validation.json)) rev sha256;
+    rev = lib.fileContents ./validation/rev;
+    sha256 = lib.fileContents  ./validation/sha;
   };
 in
   {
-    validation = packages.callPackage "${validation-source}/validation.nix" {};
+    validation = packages.callPackage "${validation-source}/validation.nix" config;
   }
