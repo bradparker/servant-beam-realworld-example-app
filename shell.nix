@@ -8,6 +8,7 @@ let
   };
 
   env = (import ./. {
+    check = true;
     inherit nixpkgs;
     inherit compiler;
   }).env;
