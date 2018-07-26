@@ -2,3 +2,4 @@
 database/pgdata
 dist
 logs
+result
