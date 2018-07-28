@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -ex
+
+nix-build release.nix
+
+if [ -x "$(command -v docker)" ]; then
+  docker load < result
+  docker tag realworld-conduit registry.heroku.com/servant-beam-realworld/web
+  docker push registry.heroku.com/servant-beam-realworld/web
+else
+  echo "Docker is required to deploy"
+  exit 1
+fi
+
+if [ -x "$(command -v heroku)" ]; then
+  heroku container:release web
+else
+  echo "The heroku tool belt is required to deploy"
+  exit 1
+fi
