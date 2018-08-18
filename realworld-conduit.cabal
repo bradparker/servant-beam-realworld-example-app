@@ -1,8 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.27.0.
+-- This file has been generated from package.yaml by hpack version 0.28.2.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: a2d073f4084d36b01c8ef7de6517f0c68fd0469698c4d23c2e2294dce3f023ab
+-- hash: 93ec18779bdfcb1eaad5a02d4303d7ce83a35416d9c8bc703896a8c62fdfd87e
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -43,7 +43,7 @@ library
   ghc-options: -Wall
   build-depends:
       aeson
-    , base >=4.10 && <4.11
+    , base >=4.10 && <4.12
     , beam-core
     , beam-postgres
     , bytestring
@@ -82,7 +82,7 @@ executable realworld-conduit
   ghc-options: -Wall
   build-depends:
       aeson
-    , base >=4.10 && <4.11
+    , base >=4.10 && <4.12
     , beam-core
     , beam-postgres
     , bytestring
@@ -116,9 +116,12 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      RealWorld.Conduit.Spec
       RealWorld.Conduit.Spec.Database
+      RealWorld.Conduit.Spec.Web
       RealWorld.Conduit.Users.Database.User.AttributesSpec
       RealWorld.Conduit.Users.DatabaseSpec
+      RealWorld.Conduit.Users.WebSpec
       Test.Hspec.Wai.Extended
   hs-source-dirs:
       spec
@@ -126,7 +129,7 @@ test-suite spec
   ghc-options: -Wall
   build-depends:
       aeson
-    , base >=4.10 && <4.11
+    , base >=4.10 && <4.12
     , beam-core
     , beam-postgres
     , bytestring

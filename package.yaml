@@ -11,7 +11,7 @@ ghc-options:
   - -Wall
 
 dependencies:
-  - base >=4.10 && <4.11
+  - base >=4.10 && <4.12
   - aeson
   - beam-core
   - beam-postgres
@@ -101,9 +101,12 @@ tests:
     source-dirs:
       - spec
     other-modules:
+      - RealWorld.Conduit.Spec
       - RealWorld.Conduit.Spec.Database
+      - RealWorld.Conduit.Spec.Web
       - RealWorld.Conduit.Users.Database.User.AttributesSpec
       - RealWorld.Conduit.Users.DatabaseSpec
+      - RealWorld.Conduit.Users.WebSpec
       - Test.Hspec.Wai.Extended
     default-extensions:
       QuasiQuotes
