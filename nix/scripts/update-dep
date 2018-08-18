@@ -7,15 +7,15 @@ if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ]; then
   exit 1
 fi
 
-echo "Ensure nix/$2 exists"
-mkdir -p "nix/$2"
+echo "Ensure nix/packages/$2 exists"
+mkdir -p "nix/packages/$2"
 
-echo "Writing rev ($3) to nix/$2/rev"
-echo $3 > nix/$2/rev
+echo "Writing rev ($3) to nix/packages/$2/rev"
+echo $3 > nix/packages/$2/rev
 
-echo "Fetching and writing sha to nix/$2/sha"
+echo "Fetching and writing sha to nix/packages/$2/sha"
 set -x
 nix-prefetch-url \
   https://github.com/$1/$2/archive/$3.tar.gz \
   --unpack \
-  > nix/$2/sha
+  > nix/packages/$2/sha

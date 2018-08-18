@@ -1,4 +1,4 @@
-{ nixpkgs ? import ./nix/nixpkgs.nix {}
+{ nixpkgs ? import ./nix/packages/nixpkgs {}
 , compiler ? "default"
 , check ? false
 }:
@@ -11,10 +11,10 @@ let
     else nixpkgs.haskell.lib.dontCheck;
 in
   checker (packages.callPackage ./package.nix {
-    inherit (import ./nix/beam.nix packages {})
+    inherit (import ./nix/packages/beam packages {})
       beam-core
       beam-postgres;
 
-    inherit (import ./nix/validation.nix packages {})
+    inherit (import ./nix/packages/validation packages {})
       validation;
   })

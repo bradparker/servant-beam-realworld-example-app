@@ -1,4 +1,4 @@
-{ nixpkgs ? import ./nix/nixpkgs.nix {}
+{ nixpkgs ? import ./nix/packages/nixpkgs {}
 }:
 nixpkgs.dockerTools.buildImage {
   name = "realworld-conduit";

@@ -1,6 +1,6 @@
 let
   compiler = "default";
-  nixpkgs = import ../nix/nixpkgs.nix {};
+  nixpkgs = import ../nix/packages/nixpkgs {};
 
   tools = import ./tools.nix {
     inherit nixpkgs;

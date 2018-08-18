@@ -1,14 +1,15 @@
-packages: config:
+packages:
+config:
 let
-  inherit (import <nixpkgs> {})
+  inherit (import ../nixpkgs config)
     fetchFromGitHub
     lib;
 
   beam-source = fetchFromGitHub {
     owner = "tathougies";
     repo = "beam";
-    rev = lib.fileContents ./beam/rev;
-    sha256 = lib.fileContents  ./beam/sha;
+    rev = lib.fileContents ./rev;
+    sha256 = lib.fileContents  ./sha;
   };
 
   beam-core = packages.callPackage (packages.haskellSrc2nix {

@@ -1,5 +1,5 @@
 { compiler ? "default"
-, nixpkgs ? import ./nix/nixpkgs.nix {}
+, nixpkgs ? import ./nix/packages/nixpkgs {}
 }:
 let
   tools = import ./nix/tools.nix {

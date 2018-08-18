@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 expression=$(cat <<-NIX
-with import ./nix/nixpkgs.nix {};
+with import ./nix/packages/nixpkgs {};
 stdenv.mkDerivation {
   name = "temp-hpack-cabal2nix";
   buildInputs = [

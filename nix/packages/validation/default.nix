@@ -1,14 +1,15 @@
-packages: config:
+packages:
+config:
 let
-  inherit (import <nixpkgs> {})
+  inherit (import ../nixpkgs config)
     fetchFromGitHub
     lib;
 
   validation-source = fetchFromGitHub {
     owner = "qfpl";
     repo = "validation";
-    rev = lib.fileContents ./validation/rev;
-    sha256 = lib.fileContents  ./validation/sha;
+    rev = lib.fileContents ./rev;
+    sha256 = lib.fileContents  ./sha;
   };
 in
   {
