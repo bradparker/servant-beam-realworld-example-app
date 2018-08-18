@@ -3,15 +3,12 @@ module RealWorld.Conduit.Spec
   ) where
 
 import Control.Applicative (pure, (<*>))
-import Control.Exception (throw)
-import Data.Either (Either(Left, Right))
 import Data.Function (($), const)
 import Data.Functor ((<$>))
 import Data.Pool (Pool, createPool)
 import Database.PostgreSQL.Simple (Connection)
 import RealWorld.Conduit.Handle (Handle(..))
 import RealWorld.Conduit.Spec.Database (withConnection)
-import Servant (Handler, runHandler)
 import System.IO (IO)
 import Web.JWT (secret)
 
