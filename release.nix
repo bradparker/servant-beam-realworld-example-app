@@ -2,6 +2,7 @@
 }:
 nixpkgs.dockerTools.buildImage {
   name = "realworld-conduit";
+  tag = "latest";
   contents = [
     nixpkgs.busybox
     (import ./. { check = false; })
