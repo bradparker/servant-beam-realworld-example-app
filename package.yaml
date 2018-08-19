@@ -69,11 +69,13 @@ library:
     - RealWorld.Conduit.Options
     - RealWorld.Conduit.Users.Database
     - RealWorld.Conduit.Users.Database.Commands
+    - RealWorld.Conduit.Users.Database.Credentials
     - RealWorld.Conduit.Users.Database.Queries
     - RealWorld.Conduit.Users.Database.User
     - RealWorld.Conduit.Users.Database.User.Attributes
     - RealWorld.Conduit.Users.Web
     - RealWorld.Conduit.Users.Web.Account
+    - RealWorld.Conduit.Users.Web.Login
     - RealWorld.Conduit.Users.Web.Register
     - RealWorld.Conduit.Web
     - RealWorld.Conduit.Web.API

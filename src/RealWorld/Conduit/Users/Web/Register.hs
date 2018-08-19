@@ -3,6 +3,7 @@ module RealWorld.Conduit.Users.Web.Register
   , handler
   , Error(..)
   , ValidationFailure(..)
+  , Registrant(..)
   ) where
 
 import Control.Monad.Trans.Class (lift)
@@ -56,6 +57,7 @@ data Registrant = Registrant
   , username :: Text
   } deriving (Generic, Show)
 
+deriving instance ToJSON Registrant
 deriving instance FromJSON Registrant
 deriving instance ToSchema Registrant
 
