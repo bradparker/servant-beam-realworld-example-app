@@ -1,8 +1,9 @@
 { mkDerivation, aeson, base, beam-core, beam-postgres, bytestring
 , containers, data-default, hspec, hspec-wai, hspec-wai-json
-, http-types, insert-ordered-containers, jwt, lens
+, http-types, insert-ordered-containers, jose, lens
 , optparse-applicative, postgresql-simple, resource-pool, scrypt
-, servant, servant-server, servant-swagger, servant-swagger-ui
+, servant, servant-auth, servant-auth-server, servant-auth-swagger
+, servant-server, servant-swagger, servant-swagger-ui
 , servant-swagger-ui-core, stdenv, swagger2, text, time
 , transformers, validation, wai, wai-extra, warp
 }:
@@ -14,16 +15,18 @@ mkDerivation {
   isExecutable = true;
   libraryHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
-    data-default http-types insert-ordered-containers jwt lens
+    data-default http-types insert-ordered-containers jose lens
     optparse-applicative postgresql-simple resource-pool scrypt servant
+    servant-auth servant-auth-server servant-auth-swagger
     servant-server servant-swagger servant-swagger-ui
     servant-swagger-ui-core swagger2 text time transformers validation
     wai wai-extra warp
   ];
   executableHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
-    data-default http-types insert-ordered-containers jwt lens
+    data-default http-types insert-ordered-containers jose lens
     optparse-applicative postgresql-simple resource-pool scrypt servant
+    servant-auth servant-auth-server servant-auth-swagger
     servant-server servant-swagger servant-swagger-ui
     servant-swagger-ui-core swagger2 text time transformers validation
     wai wai-extra warp
@@ -31,8 +34,9 @@ mkDerivation {
   testHaskellDepends = [
     aeson base beam-core beam-postgres bytestring containers
     data-default hspec hspec-wai hspec-wai-json http-types
-    insert-ordered-containers jwt lens optparse-applicative
-    postgresql-simple resource-pool scrypt servant servant-server
+    insert-ordered-containers jose lens optparse-applicative
+    postgresql-simple resource-pool scrypt servant servant-auth
+    servant-auth-server servant-auth-swagger servant-server
     servant-swagger servant-swagger-ui servant-swagger-ui-core swagger2
     text time transformers validation wai wai-extra warp
   ];

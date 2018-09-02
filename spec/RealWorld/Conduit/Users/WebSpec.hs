@@ -2,15 +2,21 @@ module RealWorld.Conduit.Users.WebSpec
   ( spec
   ) where
 
+import Control.Monad ((=<<))
 import Control.Monad.IO.Class (liftIO)
+import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Except (ExceptT(..), runExceptT)
 import Data.Aeson (FromJSON, eitherDecode, encode)
 import Data.ByteString.Lazy (ByteString)
 import Data.Either (Either(Right))
 import Data.Function (($), (.))
 import Data.Functor ((<$>), void)
+import Data.Semigroup ((<>))
 import Data.String (String)
+import Data.Text.Encoding (encodeUtf8)
 import Network.HTTP.Types
-  ( status200
+  ( hAuthorization
+  , status200
   , status201
   , status400
   , status401
@@ -24,14 +30,15 @@ import RealWorld.Conduit.Users.Web (server, users)
 import qualified RealWorld.Conduit.Users.Web.Account as Account
 import RealWorld.Conduit.Users.Web.Account (Account)
 import RealWorld.Conduit.Users.Web.Register (Registrant(Registrant))
+import qualified RealWorld.Conduit.Web as Web
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace), unNamespace)
-import Servant (serve)
+import Servant (serveWithContext)
 import Test.Hspec (Spec, around, context, describe, it, shouldBe)
-import Test.Hspec.Wai.Extended (WaiSession, post')
+import Test.Hspec.Wai.Extended (WaiSession, get', post')
 import Test.Hspec.Wai.JSON (json)
 
 app :: Handle -> Application
-app = serve users . server
+app handle = serveWithContext users (Web.context handle) (server handle)
 
 decodeUserNamespace :: FromJSON a => ByteString -> Either String (Namespace "user" a)
 decodeUserNamespace = eitherDecode
@@ -65,9 +72,8 @@ spec =
               }|]
           liftIO $ do
             simpleStatus res `shouldBe` status201
-            let account = accountFromResponse res
-            Account.username <$> account `shouldBe` Right "aname"
-            Account.email <$> account `shouldBe` Right "e@mail.com"
+            Account.username <$> accountFromResponse res `shouldBe` Right "aname"
+            Account.email <$> accountFromResponse res `shouldBe` Right "e@mail.com"
 
       context "when provided a valid body with invalid values" $
         it "responds with 422 and a json encoded error response" $ do
@@ -87,6 +93,7 @@ spec =
             simpleStatus res `shouldBe` status422
             simpleBody res `shouldBe`
               [json|{
+                message: "Failed validation",
                 errors: [
                   "EmailTaken",
                   "UsernameTaken"
@@ -124,9 +131,8 @@ spec =
               }|]
           liftIO $ do
             simpleStatus res `shouldBe` status200
-            let account = accountFromResponse res
-            Account.username <$> account `shouldBe` Right "aname"
-            Account.email <$> account `shouldBe` Right "e@mail.com"
+            Account.username <$> accountFromResponse res `shouldBe` Right "aname"
+            Account.email <$> accountFromResponse res `shouldBe` Right "e@mail.com"
 
       context "when provided incorrect credentials" $
         it "responds with a 401" $ do
@@ -142,3 +148,35 @@ spec =
                 }
               }|]
           liftIO $ simpleStatus res `shouldBe` status401
+
+    describe "GET /api/user" $ do
+      context "when provided a valid token" $
+        it "responds with 200 and a json encoded user response" $ do
+          res <-
+            runExceptT $ do
+              account <-
+                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              lift $
+                get'
+                  "/api/user"
+                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+          liftIO $ do
+            simpleStatus <$> res `shouldBe` Right status200
+            Account.username <$>
+              (accountFromResponse =<< res) `shouldBe` Right "aname"
+            Account.email <$>
+              (accountFromResponse =<< res) `shouldBe` Right "e@mail.com"
+
+      context "when provided an invalid token" $
+        it "responds with a 401" $ do
+          res <-
+            runExceptT $ do
+              account <-
+                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              lift $
+                get'
+                  "/api/user"
+                  [ ( hAuthorization
+                    , encodeUtf8 ("Bearer " <> Account.token account <> "wrong"))
+                  ]
+          liftIO $ simpleStatus <$> res `shouldBe` Right status401

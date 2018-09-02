@@ -10,12 +10,12 @@ import Database.PostgreSQL.Simple (Connection, close)
 import RealWorld.Conduit.Database (openConduitDb)
 import RealWorld.Conduit.Options (Options)
 import qualified RealWorld.Conduit.Options as Options
+import Servant.Auth.Server (JWTSettings, defaultJWTSettings)
 import System.IO (IO)
-import Web.JWT (Secret)
 
 data Handle = Handle
   { connectionPool :: Pool Connection
-  , authSecret :: Secret
+  , jwtSettings :: JWTSettings
   }
 
 createConnectionPool :: Options -> IO (Pool Connection)
@@ -26,4 +26,4 @@ new :: Options -> IO Handle
 new options =
   Handle
     <$> createConnectionPool options
-    <*> pure (Options.authSecret options)
+    <*> pure (defaultJWTSettings (Options.authKey options))

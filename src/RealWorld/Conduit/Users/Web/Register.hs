@@ -9,10 +9,11 @@ module RealWorld.Conduit.Users.Web.Register
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT, withExceptT)
 import Data.Aeson (FromJSON, ToJSON, encode)
-import Data.Function (($))
+import Data.Function (($), (.))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe(Nothing))
 import Data.Pool (withResource)
+import Data.String (String)
 import Data.Swagger (ToSchema)
 import Data.Text (Text)
 import GHC.Generics (Generic)
@@ -22,10 +23,10 @@ import RealWorld.Conduit.Users.Database.User.Attributes (ValidationFailure)
 import qualified RealWorld.Conduit.Users.Database.User.Attributes as Attributes
 import RealWorld.Conduit.Users.Web.Account (Account, fromUser)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
-import Servant (Handler(Handler), ServantErr, err422, errBody)
+import Servant (Handler(Handler), ServantErr, err422, err500, errBody)
 import Servant.API ((:>), JSON, PostCreated, ReqBody)
 import System.IO (IO)
-import Text.Show (Show)
+import Text.Show (Show, show)
 
 type Register =
   "api" :>
@@ -42,14 +43,22 @@ handler handle (Namespace params) =
   withExceptT toServantError $
   Namespace <$> register handle params
 
-newtype Error = FailedValidation
-  { errors :: [ValidationFailure]
+data Error
+  = FailedValidation [ValidationFailure]
+  | InternalServerError String
+
+data ErrorPayload e = ErrorPayload
+  { message :: Text
+  , errors :: e
   } deriving (Generic)
 
-deriving instance ToJSON Error
+deriving instance ToJSON e => ToJSON (ErrorPayload e)
 
 toServantError :: Error -> ServantErr
-toServantError e@(FailedValidation _) = err422 {errBody = encode e}
+toServantError (FailedValidation e) =
+  err422 {errBody = encode (ErrorPayload "Failed validation" e)}
+toServantError (InternalServerError e) =
+  err500 {errBody = encode (ErrorPayload "Internal server error" e)}
 
 data Registrant = Registrant
   { password :: Text
@@ -65,7 +74,7 @@ register ::
      Handle
   -> Registrant
   -> ExceptT Error IO Account
-register Handle {connectionPool, authSecret} registrant =
+register Handle {connectionPool, jwtSettings} registrant =
   withResource connectionPool $ \conn -> do
     attributes <-
       withExceptT FailedValidation $
@@ -76,4 +85,5 @@ register Handle {connectionPool, authSecret} registrant =
         (username registrant)
         ""
         Nothing
-    lift $ fromUser authSecret <$> Database.create conn attributes
+    user <- lift $ Database.create conn attributes
+    withExceptT (InternalServerError . show) $ fromUser jwtSettings user

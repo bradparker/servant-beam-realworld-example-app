@@ -3,20 +3,21 @@ module RealWorld.Conduit.Users.Web.Account
   , fromUser
   ) where
 
-import Control.Applicative ((<*>))
-import Data.Aeson (ToJSON(..), Value(String), FromJSON)
-import Data.Default (def)
-import Data.Function ((.))
+import Control.Applicative ((<*>), pure)
+import Control.Monad.Trans.Except (ExceptT(..))
+import Data.Aeson (FromJSON, ToJSON(..))
 import Data.Functor ((<$>))
-import qualified Data.Map as Map
 import Data.Maybe (Maybe)
 import Data.Swagger (ToSchema)
 import Data.Text (Text)
 import GHC.Generics (Generic)
 import RealWorld.Conduit.Users.Database.User (User)
 import qualified RealWorld.Conduit.Users.Database.User as User
+import qualified RealWorld.Conduit.Users.Web.Claim as Claim
+import Servant.Auth.Server (JWTSettings)
 import Text.Show (Show)
-import Web.JWT (Algorithm(HS256), Secret, encodeSigned, unregisteredClaims)
+import Crypto.JOSE (Error)
+import System.IO (IO)
 
 data Account = Account
   { email :: Text
@@ -30,18 +31,11 @@ deriving instance ToJSON Account
 deriving instance ToSchema Account
 deriving instance FromJSON Account
 
-deriveToken :: Secret -> Text -> Text
-deriveToken key username =
-  encodeSigned
-    HS256
-    key
-    def {unregisteredClaims = Map.fromList [("username", String username)]}
-
-fromUser :: Secret -> User -> Account
-fromUser secret =
+fromUser :: JWTSettings -> User -> ExceptT Error IO Account
+fromUser jwtSettings user =
   Account
-    <$> User.email
-    <*> deriveToken secret . User.username
-    <*> User.username
-    <*> User.bio
-    <*> User.image
+    <$> pure (User.email user)
+    <*> Claim.deriveToken jwtSettings user
+    <*> pure (User.username user)
+    <*> pure (User.bio user)
+    <*> pure (User.image user)

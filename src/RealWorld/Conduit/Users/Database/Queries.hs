@@ -1,5 +1,6 @@
 module RealWorld.Conduit.Users.Database.Queries
-  ( findByEmail
+  ( find
+  , findByEmail
   , findByUsername
   , findByCredentials
   ) where
@@ -16,8 +17,16 @@ import Database.PostgreSQL.Simple (Connection)
 import RealWorld.Conduit.Database (ConduitDb(conduitUsers), conduitDb, findBy)
 import RealWorld.Conduit.Users.Database.Credentials (Credentials)
 import qualified RealWorld.Conduit.Users.Database.Credentials as Credentials
-import RealWorld.Conduit.Users.Database.User (User, UserT(..))
+import RealWorld.Conduit.Users.Database.User
+  ( PrimaryKey(unUserId)
+  , User
+  , UserId
+  , UserT(..)
+  )
 import System.IO (IO)
+
+find :: Connection -> UserId -> IO (Maybe User)
+find conn = findBy conn (all_ (conduitUsers conduitDb)) id . unUserId
 
 findByEmail :: Connection -> Text -> IO (Maybe User)
 findByEmail conn = findBy conn (all_ (conduitUsers conduitDb)) email

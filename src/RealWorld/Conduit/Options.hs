@@ -1,19 +1,26 @@
 module RealWorld.Conduit.Options
   ( Options(..)
   , getOptions
+  , octKey
   ) where
 
 import Control.Applicative ((<*>))
 import Control.Monad ((=<<))
+import Crypto.JOSE
+  ( JWK
+  , KeyMaterial(OctKeyMaterial)
+  , OctKeyParameters(OctKeyParameters)
+  , fromKeyMaterial
+  )
+import Crypto.JOSE.Types (Base64Octets(Base64Octets))
 import Data.ByteString (ByteString)
-import Data.ByteString.Char8 (pack)
+import qualified Data.ByteString.Char8 as ByteString
 import Data.Function ((.))
 import Data.Functor ((<$>))
 import Data.Int (Int)
 import Data.Maybe (Maybe, maybe)
 import Data.Monoid ((<>), mempty)
 import Data.String (String)
-import qualified Data.Text as Text
 import Options.Applicative
   ( Parser
   , auto
@@ -36,20 +43,19 @@ import System.Environment (lookupEnv)
 import System.IO (IO)
 import Text.Read (readMaybe)
 import Text.Show (Show)
-import Web.JWT (Secret, secret)
 
 data Options = Options
   { port :: Int
   , databaseUrl :: ByteString
-  , authSecret :: Secret
+  , authKey :: JWK
   } deriving (Show)
 
 optionsParser :: Maybe Int -> Maybe String -> Maybe String -> Parser Options
-optionsParser defaultPort defaultDatabaseUrl defaultAuthSecret =
+optionsParser defaultPort defaultDatabaseUrl defaultAuthKey =
   Options
     <$> portParser
     <*> databaseUrlParser
-    <*> authSecretParser
+    <*> authKeyParser
   where
     portParser =
       option auto
@@ -59,33 +65,41 @@ optionsParser defaultPort defaultDatabaseUrl defaultAuthSecret =
         <> metavar "PORT"
         )
     databaseUrlParser =
-      pack <$> option str
+      ByteString.pack <$> option str
         ( maybe mempty value defaultDatabaseUrl
         <> short 'd'
         <> long "database-url"
         <> help "Of the form postgres://user:password@hostname:port/name"
         <> metavar "DATABASE_URL"
         )
-    authSecretParser =
-      secret . Text.pack <$> option str
-        ( maybe mempty value defaultAuthSecret
+    authKeyParser =
+      octKey <$> option str
+        ( maybe mempty value defaultAuthKey
         <> short 's'
         <> long "auth-secret"
-        <> help "A very big, very secret, very random string"
+        <> help "256 random chars."
         <> metavar "AUTH_SECRET"
         )
+
+octKey :: String -> JWK
+octKey =
+  fromKeyMaterial .
+  OctKeyMaterial .
+  OctKeyParameters .
+  Base64Octets .
+  ByteString.pack
 
 getOptions :: IO Options
 getOptions = do
   port <- getPort
   databaseUrl <- getDatabaseUrl
-  authSecret <- getAuthSecret
+  authKey <- getAuthKey
   customExecParser
     (prefs showHelpOnError)
     (info
-       (helper <*> optionsParser port databaseUrl authSecret)
+       (helper <*> optionsParser port databaseUrl authKey)
        (header "Realworld Conduit" <> fullDesc))
   where
     getPort = (readMaybe =<<) <$> lookupEnv "PORT"
     getDatabaseUrl = lookupEnv "DATABASE_URL"
-    getAuthSecret = lookupEnv "AUTH_SECRET"
+    getAuthKey = lookupEnv "AUTH_SECRET"
