@@ -5,7 +5,7 @@ nixpkgs.dockerTools.buildImage {
   tag = "latest";
   contents = [
     nixpkgs.busybox
-    (import ./. { check = false; })
+    (nixpkgs.haskell.lib.justStaticExecutables (import ./. { check = false; }))
   ];
   config = {
     Cmd = ["/bin/realworld-conduit"];
