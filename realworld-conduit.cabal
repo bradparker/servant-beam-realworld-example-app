@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 65b5471f862169ef15bf9bb4c3af9a26abee7c25786bad60b824c7ba497ae7f0
+-- hash: 5a51d31565f710d6f0e7b3335591bf46f3650231efdc6afd66901f56a1f148a2
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -31,6 +31,8 @@ library
       RealWorld.Conduit.Users.Web.Account
       RealWorld.Conduit.Users.Web.Claim
       RealWorld.Conduit.Users.Web.Current
+      RealWorld.Conduit.Users.Web.Current.Update
+      RealWorld.Conduit.Users.Web.Current.View
       RealWorld.Conduit.Users.Web.Login
       RealWorld.Conduit.Users.Web.Register
       RealWorld.Conduit.Web

@@ -34,7 +34,7 @@ import qualified RealWorld.Conduit.Web as Web
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace), unNamespace)
 import Servant (serveWithContext)
 import Test.Hspec (Spec, around, context, describe, it, shouldBe)
-import Test.Hspec.Wai.Extended (WaiSession, get', post')
+import Test.Hspec.Wai.Extended (WaiSession, get', post', put')
 import Test.Hspec.Wai.JSON (json)
 
 app :: Handle -> Application
@@ -180,3 +180,69 @@ spec =
                     , encodeUtf8 ("Bearer " <> Account.token account <> "wrong"))
                   ]
           liftIO $ simpleStatus <$> res `shouldBe` Right status401
+
+    describe "PUT /api/user" $ do
+      context "when provided an invalid token" $
+        it "responds with a 401" $ do
+          res <-
+            runExceptT $ do
+              account <-
+                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              lift $
+                put'
+                  "/api/user"
+                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account <> "wrong"))]
+                  [json|{
+                    user: {
+                      email: "changed@mail.com"
+                    }
+                  }|]
+          liftIO $ simpleStatus <$> res `shouldBe` Right status401
+
+      context "when provided a valid body of attributes to update" $
+        it "responds with 200 and a json encoded response of the updated user" $ do
+          res <-
+            runExceptT $ do
+              account <-
+                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              lift $
+                put'
+                  "/api/user"
+                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [json|{
+                    user: {
+                      email: "changed@mail.com"
+                    }
+                  }|]
+          liftIO $ do
+            simpleStatus <$> res `shouldBe` Right status200
+            Account.email <$>
+              (accountFromResponse =<< res) `shouldBe` Right "changed@mail.com"
+
+      context "when provided an invalid body of attributes to update" $
+        it "responds with 422 and a json encoded error response" $ do
+          void $ register $ Registrant "secret123" "ta@ken.com" "taken"
+          res <-
+            runExceptT $ do
+              account <-
+                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              lift $
+                put'
+                  "/api/user"
+                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [json|{
+                    user: {
+                      email: "ta@ken.com"
+                    }
+                  }|]
+          liftIO $ do
+            simpleStatus <$> res `shouldBe` Right status422
+            simpleBody <$>
+              res `shouldBe`
+              Right
+                [json|{
+                  message: "Failed validation",
+                  errors: [
+                    "EmailTaken"
+                  ]
+                }|]

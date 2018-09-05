@@ -12,6 +12,7 @@ import Crypto.Scrypt
   , Pass(Pass)
   , encryptPassIO'
   )
+import Data.Aeson (ToJSON)
 import Data.Bool (otherwise)
 import Data.Eq (Eq, (==))
 import Data.Function (($), (.))
@@ -26,13 +27,12 @@ import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Data.Traversable (traverse)
 import Data.Validation (Validation(Failure, Success), toEither)
 import Database.PostgreSQL.Simple (Connection)
+import GHC.Generics (Generic)
 import RealWorld.Conduit.Attribute (Attribute)
 import RealWorld.Conduit.Users.Database.Queries (findByEmail, findByUsername)
 import RealWorld.Conduit.Users.Database.User (User)
 import qualified RealWorld.Conduit.Users.Database.User as User
 import System.IO (IO)
-import GHC.Generics (Generic)
-import Data.Aeson (ToJSON)
 import Text.Show (Show)
 
 data Attributes f = Attributes
