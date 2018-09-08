@@ -1,15 +1,13 @@
 { compiler ? "default"
-, nixpkgs ? import ./nix/packages/nixpkgs {}
 }:
 let
-  tools = import ./nix/tools.nix {
-    inherit nixpkgs;
+  nixpkgs = import ./nix/packages {
     inherit compiler;
   };
 
+  tools = import ./nix/tools.nix nixpkgs;
+
   env = (import ./. {
-    check = true;
-    inherit nixpkgs;
     inherit compiler;
   }).env;
 in

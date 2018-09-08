@@ -1,10 +1,10 @@
-packages:
-config:
+{ lib
+, fetchFromGitHub
+, ...
+}:
+self:
+super:
 let
-  inherit (import ../nixpkgs config)
-    fetchFromGitHub
-    lib;
-
   validation-source = fetchFromGitHub {
     owner = "qfpl";
     repo = "validation";
@@ -13,5 +13,5 @@ let
   };
 in
   {
-    validation = packages.callPackage "${validation-source}/validation.nix" config;
+    validation = self.callPackage "${validation-source}/validation.nix" {};
   }
