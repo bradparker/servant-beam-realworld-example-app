@@ -11,14 +11,8 @@ in
       packageOverrides = nixpkgs: {
         haskellPackages = (haskellPackages compiler nixpkgs).override {
           overrides = self: super:
-            {
-              inherit (import ./beam nixpkgs self super)
-                beam-core
-                beam-migrate
-                beam-postgres;
-              inherit (import ./validation nixpkgs self super)
-                validation;
-            };
+            (import ./beam nixpkgs self super) //
+            (import ./validation nixpkgs self super);
         };
       };
     };
