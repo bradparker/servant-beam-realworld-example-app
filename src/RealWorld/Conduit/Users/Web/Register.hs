@@ -12,7 +12,6 @@ import Data.Aeson (FromJSON, ToJSON, encode)
 import Data.Function (($), (.))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe(Nothing))
-import Data.Pool (withResource)
 import Data.String (String)
 import Data.Swagger (ToSchema)
 import Data.Text (Text)
@@ -74,8 +73,8 @@ register ::
      Handle
   -> Registrant
   -> ExceptT Error IO Account
-register Handle {connectionPool, jwtSettings} registrant =
-  withResource connectionPool $ \conn -> do
+register Handle {withDatabaseConnection, jwtSettings} registrant =
+  withDatabaseConnection $ \conn -> do
     attributes <-
       withExceptT FailedValidation $
       Attributes.forInsert

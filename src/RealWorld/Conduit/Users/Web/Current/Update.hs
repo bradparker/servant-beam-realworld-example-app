@@ -6,12 +6,10 @@ module RealWorld.Conduit.Users.Web.Current.Update
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT, withExceptT)
 import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)
-import Data.Aeson (FromJSON, ToJSON, encode)
-import Data.Function (($), (.))
+import Data.Aeson (FromJSON)
+import Data.Function (($), (.), flip)
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe)
-import Data.Pool (withResource)
-import Data.String (String)
 import Data.Swagger (ToSchema)
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -19,20 +17,17 @@ import GHC.Generics (Generic)
 import RealWorld.Conduit.Handle (Handle(..))
 import qualified RealWorld.Conduit.Users.Database as Database
 import RealWorld.Conduit.Users.Database.User (PrimaryKey(UserId))
-import RealWorld.Conduit.Users.Database.User.Attributes (ValidationFailure)
 import qualified RealWorld.Conduit.Users.Database.User.Attributes as Attributes
 import RealWorld.Conduit.Users.Web.Account (Account, fromUser)
 import RealWorld.Conduit.Users.Web.Claim (Claim(Claim))
-import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
-import Servant
-  ( Handler(Handler)
-  , ServantErr
-  , err401
-  , err422
-  , err500
-  , errBody
-  , throwError
+import RealWorld.Conduit.Web.Auth (withRequiredAuth)
+import RealWorld.Conduit.Web.Errors
+  ( failedValidation
+  , internalServerError
+  , notFound
   )
+import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
+import Servant (Handler(Handler), ServantErr)
 import Servant.API ((:>), JSON, Put, ReqBody)
 import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
@@ -45,18 +40,6 @@ type Update =
   "user" :>
   ReqBody '[JSON] (Namespace "user" UserUpdate) :>
   Put '[ JSON] (Namespace "user" Account)
-
-data Error
-  = NotFound
-  | FailedValidation [ValidationFailure]
-  | InternalServerError String
-
-data ErrorPayload e = ErrorPayload
-  { message :: Text
-  , errors :: e
-  } deriving (Generic)
-
-deriving instance ToJSON e => ToJSON (ErrorPayload e)
 
 data UserUpdate = UserUpdate
   { password :: Maybe Text
@@ -75,27 +58,17 @@ handler ::
   -> AuthResult Claim
   -> Namespace "user" UserUpdate
   -> Handler (Namespace "user" Account)
-handler handle (Authenticated claim) (Namespace params) =
-  Handler $
-  withExceptT toServantError $ Namespace <$> update handle claim params
-handler _ _ _ =
-  throwError err401 {errBody = encode (ErrorPayload "Unauthorized" Text.empty)}
+handler handle authresult (Namespace params) =
+  flip withRequiredAuth authresult $ \claim ->
+    Handler $ Namespace <$> update handle claim params
 
-toServantError :: Error -> ServantErr
-toServantError NotFound =
-  err401 {errBody = encode (ErrorPayload "Incorrect credentials" Text.empty)}
-toServantError (FailedValidation e) =
-  err422 {errBody = encode (ErrorPayload "Failed validation" e)}
-toServantError (InternalServerError e) =
-  err500 {errBody = encode (ErrorPayload "Internal server error" e)}
-
-update :: Handle -> Claim -> UserUpdate -> ExceptT Error IO Account
-update Handle {connectionPool, jwtSettings} (Claim id) params =
-  withResource connectionPool $ \conn -> do
+update :: Handle -> Claim -> UserUpdate -> ExceptT ServantErr IO Account
+update Handle {withDatabaseConnection, jwtSettings} (Claim id) params =
+  withDatabaseConnection $ \conn -> do
     user <-
-      maybeToExceptT NotFound $ MaybeT $ Database.find conn (UserId id)
+      maybeToExceptT (notFound "User") $ MaybeT $ Database.find conn (UserId id)
     attributes <-
-      withExceptT FailedValidation $
+      withExceptT failedValidation $
       Attributes.forUpdate
         conn
         user
@@ -105,4 +78,4 @@ update Handle {connectionPool, jwtSettings} (Claim id) params =
         (bio params)
         (image params)
     updated <- lift $ Database.update conn user attributes
-    withExceptT (InternalServerError . show) $ fromUser jwtSettings updated
+    withExceptT (internalServerError . Text.pack . show) $ fromUser jwtSettings updated

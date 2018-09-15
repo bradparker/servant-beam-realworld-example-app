@@ -9,10 +9,9 @@ import Control.Monad.IO.Class (liftIO)
 import Data.Aeson (ToJSON)
 import Data.Bool (Bool(False, True))
 import Data.Function (($), const)
-import Data.Functor (void)
+import Data.Functor ((<$))
 import Data.Int (Int)
 import Data.List (all)
-import Data.Pool (Pool, withResource)
 import Data.Swagger (ToSchema)
 import Data.Text (Text)
 import Data.Time (diffUTCTime, getCurrentTime)
@@ -38,9 +37,9 @@ deriving instance ToSchema Status
 type Health = "health" :> Get '[ JSON] Status
 
 checkDatabase :: Handle -> IO Service
-checkDatabase Handle {connectionPool} = do
+checkDatabase Handle {withDatabaseConnection} = do
   start <- getCurrentTime
-  status <- check connectionPool `catch` failCheck
+  status <- withDatabaseConnection check `catch` failCheck
   end <- getCurrentTime
   pure
     Service
@@ -51,10 +50,9 @@ checkDatabase Handle {connectionPool} = do
   where
     failCheck :: SomeException -> IO Bool
     failCheck = const (pure False)
-    check :: Pool Connection -> IO Bool
-    check pool = do
-      void (withResource pool (`query_` "select 1") :: IO [Only Int])
-      pure True
+    check :: Connection -> IO Bool
+    check conn =
+      True <$ (query_ conn "select 1" :: IO [Only Int])
 
 health :: Handle -> Handler Status
 health handle = do

@@ -22,6 +22,7 @@ dependencies:
   - insert-ordered-containers
   - jose
   - lens
+  - monad-control
   - optparse-applicative
   - postgresql-simple
   - resource-pool
@@ -86,6 +87,8 @@ library:
     - RealWorld.Conduit.Users.Web.Register
     - RealWorld.Conduit.Web
     - RealWorld.Conduit.Web.API
+    - RealWorld.Conduit.Web.Auth
+    - RealWorld.Conduit.Web.Errors
     - RealWorld.Conduit.Web.Health
     - RealWorld.Conduit.Web.Health.Service
     - RealWorld.Conduit.Web.Namespace

@@ -8,7 +8,6 @@ import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)
 import Data.Aeson (ToJSON, encode)
 import Data.Function (($), (.))
 import Data.Functor ((<$>))
-import Data.Pool (withResource)
 import Data.String (String)
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -57,8 +56,8 @@ toServantError (InternalServerError e) =
   err500 {errBody = encode (ErrorPayload "Internal server error" e)}
 
 login :: Handle -> Credentials -> ExceptT Error IO Account
-login Handle {connectionPool, jwtSettings} creds =
-  withResource connectionPool $ \conn -> do
+login Handle {withDatabaseConnection, jwtSettings} creds =
+  withDatabaseConnection $ \conn -> do
     user <-
       maybeToExceptT NotFound $ MaybeT $ Database.findByCredentials conn creds
     withExceptT (InternalServerError . show) $ fromUser jwtSettings user
