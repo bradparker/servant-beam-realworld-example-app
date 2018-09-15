@@ -1,1 +1,19 @@
-- arguments: [-XQuasiQuotes]
+- arguments:
+    - -XQuasiQuotes
+    - -XDataKinds
+    - -XDeriveAnyClass
+    - -XDeriveGeneric
+    - -XDuplicateRecordFields
+    - -XFlexibleContexts
+    - -XFlexibleInstances
+    - -XKindSignatures
+    - -XMultiParamTypeClasses
+    - -XNamedFieldPuns
+    - -XNoImplicitPrelude
+    - -XOverloadedStrings
+    - -XPartialTypeSignatures
+    - -XScopedTypeVariables
+    - -XStandaloneDeriving
+    - -XTypeFamilies
+    - -XTypeOperators
+    - -XTypeSynonymInstances
