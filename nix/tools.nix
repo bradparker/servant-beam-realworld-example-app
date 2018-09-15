@@ -4,6 +4,7 @@ nixpkgs:
     nixpkgs.postgresql
     nixpkgs.sqitchPg
     nixpkgs.haskellPackages.cabal-install
+    nixpkgs.haskellPackages.cabal2nix
     nixpkgs.haskellPackages.ghcid
     nixpkgs.haskellPackages.hindent
     nixpkgs.haskellPackages.hlint
