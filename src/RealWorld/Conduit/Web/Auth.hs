@@ -1,22 +1,21 @@
 module RealWorld.Conduit.Web.Auth
-  ( withRequiredAuth
-  , withOptionalAuth
+  ( loadAuthorizedUser
   ) where
 
-import Data.Aeson (encode)
-import qualified Data.Map.Strict as Map
-import Data.Maybe (Maybe(Just, Nothing))
-import Data.Text (Text)
-import Servant (Handler, err401, errBody, throwError)
+import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)
+import Data.Function (($))
+import RealWorld.Conduit.Handle (Handle(..))
+import qualified RealWorld.Conduit.Users.Database as Users
+import RealWorld.Conduit.Users.Database.User (PrimaryKey(UserId), User)
+import RealWorld.Conduit.Users.Web.Claim (Claim(Claim))
+import RealWorld.Conduit.Web.Errors (notAuthorized)
+import Servant (Handler(Handler), throwError)
 import Servant.Auth.Server (AuthResult(..))
 
-notAuthorizedError :: Map.Map Text Text
-notAuthorizedError = Map.singleton "message" "Not Authorized"
-
-withRequiredAuth :: (a -> Handler b) -> AuthResult a -> Handler b
-withRequiredAuth h (Authenticated a) = h a
-withRequiredAuth _ _ = throwError err401 {errBody = encode notAuthorizedError}
-
-withOptionalAuth :: (Maybe a -> Handler b) -> AuthResult a -> Handler b
-withOptionalAuth h (Authenticated a) = h (Just a)
-withOptionalAuth h _ = h Nothing
+loadAuthorizedUser :: Handle -> AuthResult Claim -> Handler User
+loadAuthorizedUser handle (Authenticated (Claim id)) =
+  withDatabaseConnection handle $ \conn ->
+    Handler $
+    maybeToExceptT notAuthorized $
+    MaybeT $ Users.find conn (UserId id)
+loadAuthorizedUser _ _ = throwError notAuthorized

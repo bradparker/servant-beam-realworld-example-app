@@ -1,5 +1,6 @@
 module RealWorld.Conduit.Web.Errors
   ( ErrorBody(..)
+  , notAuthorized
   , notFound
   , failedValidation
   , internalServerError
@@ -7,7 +8,7 @@ module RealWorld.Conduit.Web.Errors
 
 import Data.Text (Text)
 import Data.Maybe (Maybe(Nothing, Just))
-import Servant (err404, err422, err500, errBody, ServantErr)
+import Servant (err401, err404, err422, err500, errBody, ServantErr)
 import Data.Aeson (ToJSON, encode)
 import GHC.Generics (Generic)
 import Data.Semigroup ((<>))
@@ -18,6 +19,16 @@ data ErrorBody errors = ErrorBody
   } deriving (Generic)
 
 deriving instance ToJSON errors => ToJSON (ErrorBody errors)
+
+notAuthorized :: ServantErr
+notAuthorized =
+  err401 {errBody = encode body}
+    where
+      body :: ErrorBody ()
+      body = ErrorBody
+        { message = "Not Authorized"
+        , errors = Nothing
+        }
 
 notFound :: Text -> ServantErr
 notFound resourceName =

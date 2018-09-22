@@ -5,39 +5,32 @@ module RealWorld.Conduit.Users.Web.Current.Update
 
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Except (ExceptT, withExceptT)
-import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)
 import Data.Aeson (FromJSON)
-import Data.Function (($), (.), flip)
+import Data.Function (($))
 import Data.Functor ((<$>))
 import Data.Maybe (Maybe)
 import Data.Swagger (ToSchema)
 import Data.Text (Text)
-import qualified Data.Text as Text
 import GHC.Generics (Generic)
 import RealWorld.Conduit.Handle (Handle(..))
 import qualified RealWorld.Conduit.Users.Database as Database
-import RealWorld.Conduit.Users.Database.User (PrimaryKey(UserId))
+import RealWorld.Conduit.Users.Database.User (User)
 import qualified RealWorld.Conduit.Users.Database.User.Attributes as Attributes
-import RealWorld.Conduit.Users.Web.Account (Account, fromUser)
-import RealWorld.Conduit.Users.Web.Claim (Claim(Claim))
-import RealWorld.Conduit.Web.Auth (withRequiredAuth)
-import RealWorld.Conduit.Web.Errors
-  ( failedValidation
-  , internalServerError
-  , notFound
-  )
+import RealWorld.Conduit.Users.Web.Account (Account, account)
+import RealWorld.Conduit.Users.Web.Claim (Claim)
+import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
+import RealWorld.Conduit.Web.Errors (failedValidation)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
 import Servant (Handler(Handler), ServantErr)
 import Servant.API ((:>), JSON, Put, ReqBody)
 import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 import System.IO (IO)
-import Text.Show (show)
 
 type Update =
-  Auth '[JWT] Claim :>
   "api" :>
   "user" :>
+  Auth '[JWT] Claim :>
   ReqBody '[JSON] (Namespace "user" UserUpdate) :>
   Put '[ JSON] (Namespace "user" Account)
 
@@ -58,15 +51,14 @@ handler ::
   -> AuthResult Claim
   -> Namespace "user" UserUpdate
   -> Handler (Namespace "user" Account)
-handler handle authresult (Namespace params) =
-  flip withRequiredAuth authresult $ \claim ->
-    Handler $ Namespace <$> update handle claim params
+handler handle authresult (Namespace params) = do
+  user <- loadAuthorizedUser handle authresult
+  updated <- Handler $ update handle user params
+  Namespace <$> account handle updated
 
-update :: Handle -> Claim -> UserUpdate -> ExceptT ServantErr IO Account
-update Handle {withDatabaseConnection, jwtSettings} (Claim id) params =
-  withDatabaseConnection $ \conn -> do
-    user <-
-      maybeToExceptT (notFound "User") $ MaybeT $ Database.find conn (UserId id)
+update :: Handle -> User -> UserUpdate -> ExceptT ServantErr IO User
+update handle user params =
+  withDatabaseConnection handle $ \conn -> do
     attributes <-
       withExceptT failedValidation $
       Attributes.forUpdate
@@ -77,5 +69,4 @@ update Handle {withDatabaseConnection, jwtSettings} (Claim id) params =
         (username params)
         (bio params)
         (image params)
-    updated <- lift $ Database.update conn user attributes
-    withExceptT (internalServerError . Text.pack . show) $ fromUser jwtSettings updated
+    lift $ Database.update conn user attributes
