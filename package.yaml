@@ -84,6 +84,9 @@ library:
     - RealWorld.Conduit.Users.Web.Current.Update
     - RealWorld.Conduit.Users.Web.Current.View
     - RealWorld.Conduit.Users.Web.Login
+    - RealWorld.Conduit.Users.Web.Profile
+    - RealWorld.Conduit.Users.Web.Profiles
+    - RealWorld.Conduit.Users.Web.Profiles.View
     - RealWorld.Conduit.Users.Web.Register
     - RealWorld.Conduit.Web
     - RealWorld.Conduit.Web.API

@@ -11,6 +11,7 @@ import Data.ByteString.Lazy (ByteString)
 import Data.Either (Either(Right))
 import Data.Function (($), (.))
 import Data.Functor ((<$>), void)
+import Data.Maybe (Maybe(Nothing))
 import Data.Semigroup ((<>))
 import Data.String (String)
 import Data.Text.Encoding (encodeUtf8)
@@ -21,6 +22,7 @@ import Network.HTTP.Types
   , status400
   , status401
   , status422
+  , status404
   )
 import Network.Wai (Application)
 import Network.Wai.Test (SResponse(simpleBody, simpleStatus))
@@ -29,6 +31,8 @@ import RealWorld.Conduit.Spec.Web (withApp)
 import RealWorld.Conduit.Users.Web (server, users)
 import qualified RealWorld.Conduit.Users.Web.Account as Account
 import RealWorld.Conduit.Users.Web.Account (Account)
+import RealWorld.Conduit.Users.Web.Profile (Profile)
+import qualified RealWorld.Conduit.Users.Web.Profile as Profile
 import RealWorld.Conduit.Users.Web.Register (Registrant(Registrant))
 import qualified RealWorld.Conduit.Web as Web
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace), unNamespace)
@@ -43,8 +47,14 @@ app handle = serveWithContext users (Web.context handle) (server handle)
 decodeUserNamespace :: FromJSON a => ByteString -> Either String (Namespace "user" a)
 decodeUserNamespace = eitherDecode
 
+userFromResponse :: FromJSON a => SResponse -> Either String a
+userFromResponse = (unNamespace <$>) . decodeUserNamespace . simpleBody
+
 accountFromResponse :: SResponse -> Either String Account
-accountFromResponse = (unNamespace <$>) . decodeUserNamespace . simpleBody
+accountFromResponse = userFromResponse
+
+profileFromResponse :: SResponse -> Either String Profile
+profileFromResponse = userFromResponse
 
 userNamespace :: a -> Namespace "user" a
 userNamespace = Namespace
@@ -246,3 +256,24 @@ spec =
                     "EmailTaken"
                   ]
                 }|]
+
+    describe "GET /api/profiles/:username" $ do
+      context "when user exists" $
+        it "returns 200 with the user as a json encoded Profile" $ do
+          void $ register $ Registrant "secret123" "e@mail.com" "usernameA"
+          res <- get' "/api/profiles/usernameA" []
+          liftIO $ do
+            simpleStatus res `shouldBe` status200
+            let profile = profileFromResponse res
+            Profile.username <$> profile `shouldBe` Right "usernameA"
+            Profile.bio <$> profile `shouldBe` Right ""
+            Profile.image <$> profile `shouldBe` Right Nothing
+
+      context "when user doesn't exist" $
+        it "returns 404 with a message" $ do
+          void $ register $ Registrant "secret123" "e@mail.com" "usernameA"
+          res <- get' "/api/profiles/usernameB" []
+          liftIO $ do
+            simpleStatus res `shouldBe` status404
+            simpleBody res `shouldBe`
+              [json|{ message: "User not found", errors: null }|]
