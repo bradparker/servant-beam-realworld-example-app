@@ -3,6 +3,7 @@ module RealWorld.Conduit.Users.Database.Queries
   , findByEmail
   , findByUsername
   , findByCredentials
+  , followersAndFollowees
   ) where
 
 import Control.Applicative (pure)
@@ -12,11 +13,13 @@ import Data.Function ((.))
 import Data.Maybe (Maybe(Nothing), maybe)
 import Data.Text (Text)
 import Data.Text.Encoding (encodeUtf8)
-import Database.Beam (all_)
+import Database.Beam (Q, QExpr, all_, manyToMany_)
+import Database.Beam.Postgres.Syntax (PgExpressionSyntax, PgSelectSyntax)
 import Database.PostgreSQL.Simple (Connection)
-import RealWorld.Conduit.Database (ConduitDb(conduitUsers), conduitDb, findBy)
+import RealWorld.Conduit.Database (ConduitDb(conduitUsers, conduitFollows), conduitDb, findBy)
 import RealWorld.Conduit.Users.Database.Credentials (Credentials)
 import qualified RealWorld.Conduit.Users.Database.Credentials as Credentials
+import qualified RealWorld.Conduit.Users.Database.Follow as Follow
 import RealWorld.Conduit.Users.Database.User
   ( PrimaryKey(unUserId)
   , User
@@ -44,3 +47,14 @@ findByCredentials conn credentials = do
   if maybe False (encryptedPassMatches (Credentials.password credentials) . password) found
     then pure found
     else pure Nothing
+
+followersAndFollowees ::
+     Q PgSelectSyntax ConduitDb s ( UserT (QExpr PgExpressionSyntax s)
+                                  , UserT (QExpr PgExpressionSyntax s))
+followersAndFollowees =
+  manyToMany_
+    (conduitFollows conduitDb)
+    Follow.follower
+    Follow.followee
+    (all_ (conduitUsers conduitDb))
+    (all_ (conduitUsers conduitDb))

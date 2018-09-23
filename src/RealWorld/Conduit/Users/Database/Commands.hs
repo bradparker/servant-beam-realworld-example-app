@@ -1,48 +1,53 @@
 module RealWorld.Conduit.Users.Database.Commands
   ( create
   , update
+  , follow
+  , unfollow
   ) where
 
-import Data.Function ((.))
+import Data.Function (($), (.))
 import Data.Functor ((<$>))
 import Data.Functor.Identity (Identity)
 import Data.Maybe (Maybe, catMaybes, fromMaybe, listToMaybe)
 import Database.Beam
-  ( (<-.)
+  ( (&&.)
+  , (<-.)
   , (==.)
   , default_
+  , delete
   , insertExpressions
   , primaryKey
+  , runDelete
   , val_
   )
 import Database.Beam.Backend.SQL.BeamExtensions (MonadBeamUpdateReturning(..))
 import Database.Beam.Postgres (runBeamPostgres)
 import Database.PostgreSQL.Simple (Connection)
 import RealWorld.Conduit.Database
-  ( ConduitDb(conduitUsers)
+  ( ConduitDb(conduitFollows, conduitUsers)
   , conduitDb
   , insertOne
   )
+import RealWorld.Conduit.Users.Database.Follow (Follow, FollowT(Follow))
+import qualified RealWorld.Conduit.Users.Database.Follow as Follow
 import qualified RealWorld.Conduit.Users.Database.User as User
-import RealWorld.Conduit.Users.Database.User (User, UserT(User))
+import RealWorld.Conduit.Users.Database.User (User, UserId, UserT(User))
 import RealWorld.Conduit.Users.Database.User.Attributes (Attributes(..))
 import System.IO (IO)
 
 create :: Connection -> Attributes Identity -> IO User
 create conn Attributes {password, email, username, bio, image} =
-  insertOne
-    conn
-    (conduitUsers conduitDb)
-    (insertExpressions
-       [ User
-           { User.id = default_
-           , User.password = val_ password
-           , User.email = val_ email
-           , User.bio = val_ bio
-           , User.username = val_ username
-           , User.image = val_ image
-           }
-       ])
+  insertOne conn (conduitUsers conduitDb) $
+  insertExpressions
+    [ User
+        { User.id = default_
+        , User.password = val_ password
+        , User.email = val_ email
+        , User.bio = val_ bio
+        , User.username = val_ username
+        , User.image = val_ image
+        }
+    ]
 
 update :: Connection -> User -> Attributes Maybe -> IO User
 update conn currentUser Attributes {password, email, username, bio, image} =
@@ -60,3 +65,20 @@ update conn currentUser Attributes {password, email, username, bio, image} =
             , (User.image user <-.) . val_ <$> image
             ])
        (\user -> primaryKey user ==. val_ (primaryKey currentUser)))
+
+follow :: Connection -> UserId -> UserId -> IO Follow
+follow conn followerId followeeId =
+  insertOne conn (conduitFollows conduitDb) $
+  insertExpressions
+    [ Follow
+        { Follow.follower = val_ followerId
+        , Follow.followee = val_ followeeId
+        }
+    ]
+
+unfollow :: Connection -> UserId -> UserId -> IO ()
+unfollow conn followerId followeeId =
+  runBeamPostgres conn $
+  runDelete $
+  delete (conduitFollows conduitDb) $ \(Follow follower followee) ->
+    follower ==. val_ followerId &&. followee ==. val_ followeeId

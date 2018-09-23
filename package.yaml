@@ -74,6 +74,7 @@ library:
     - RealWorld.Conduit.Users.Database
     - RealWorld.Conduit.Users.Database.Commands
     - RealWorld.Conduit.Users.Database.Credentials
+    - RealWorld.Conduit.Users.Database.Follow
     - RealWorld.Conduit.Users.Database.Queries
     - RealWorld.Conduit.Users.Database.User
     - RealWorld.Conduit.Users.Database.User.Attributes
@@ -87,6 +88,7 @@ library:
     - RealWorld.Conduit.Users.Web.Profile
     - RealWorld.Conduit.Users.Web.Profiles
     - RealWorld.Conduit.Users.Web.Profiles.View
+    - RealWorld.Conduit.Users.Web.Profiles.Follow
     - RealWorld.Conduit.Users.Web.Register
     - RealWorld.Conduit.Web
     - RealWorld.Conduit.Web.API

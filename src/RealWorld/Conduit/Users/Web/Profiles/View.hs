@@ -1,6 +1,7 @@
 module RealWorld.Conduit.Users.Web.Profiles.View
   ( View
   , handler
+  , loadUserByUserName
   ) where
 
 import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)

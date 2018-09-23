@@ -46,12 +46,14 @@ import Database.Beam.Postgres.Syntax
   )
 import Database.PostgreSQL.Simple (Connection, connectPostgreSQL)
 import GHC.Generics (Generic)
+import RealWorld.Conduit.Users.Database.Follow (FollowT)
 import RealWorld.Conduit.Users.Database.User (UserT)
 import System.IO (IO)
 import Text.Show (Show)
 
-newtype ConduitDb f = ConduitDb
-  { conduitUsers :: f (TableEntity UserT)
+data ConduitDb f = ConduitDb
+  { conduitFollows :: f (TableEntity FollowT)
+  , conduitUsers :: f (TableEntity UserT)
   } deriving (Generic)
 
 instance Database Postgres ConduitDb

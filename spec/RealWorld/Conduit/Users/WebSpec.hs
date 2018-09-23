@@ -277,3 +277,53 @@ spec =
             simpleStatus res `shouldBe` status404
             simpleBody res `shouldBe`
               [json|{ message: "User not found", errors: null }|]
+
+    describe "POST /api/profiles/:username/follow" $ do
+      context "when user isn't authenticated" $
+        it "responds with a 401" $ do
+          res <-
+            runExceptT $ do
+              account <-
+                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              lift $
+                post'
+                  "/api/profiles/followee/follow"
+                  [ ( hAuthorization
+                    , encodeUtf8 ("Bearer " <> Account.token account <> "wrong"))
+                  ]
+                  ""
+          liftIO $ simpleStatus <$> res `shouldBe` Right status401
+
+      context "when user is authenticated" $ do
+        context "when profile exists" $
+          it "returns 200 with the profile as json" $ do
+            res <-
+              runExceptT $ do
+                void $ ExceptT $ register $ Registrant "secret123" "follow@ee.com" "followee"
+                account <-
+                  ExceptT $ register $ Registrant "secret123" "follow@er.com" "follower"
+                lift $
+                  post'
+                    "/api/profiles/followee/follow"
+                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    ""
+            liftIO $ do
+              simpleStatus <$> res `shouldBe` Right status200
+              let profile = profileFromResponse =<< res
+              Profile.username <$> profile `shouldBe` Right "followee"
+              Profile.bio <$> profile `shouldBe` Right ""
+              Profile.image <$> profile `shouldBe` Right Nothing
+
+        context "when profile does not exist" $
+          it "responds with a 404" $ do
+            res <-
+              runExceptT $ do
+                account <-
+                  ExceptT $ register $ Registrant "secret123" "follow@er.com" "follower"
+                lift $
+                  post'
+                    "/api/profiles/followee/follow"
+                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    ""
+            liftIO $
+              simpleStatus <$> res `shouldBe` Right status404
