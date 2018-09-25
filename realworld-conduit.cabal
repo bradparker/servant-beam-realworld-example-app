@@ -4,7 +4,7 @@ cabal-version: >= 1.10
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: bd7c3b905001befc850946199c198771459bc7dc32b501d3a8dcd522d4ae1b70
+-- hash: bde30498e1c6e03967a80bc870f806c3870571e11028a3a0127f6f05dbf5d201
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -38,8 +38,9 @@ library
       RealWorld.Conduit.Users.Web.Login
       RealWorld.Conduit.Users.Web.Profile
       RealWorld.Conduit.Users.Web.Profiles
-      RealWorld.Conduit.Users.Web.Profiles.View
       RealWorld.Conduit.Users.Web.Profiles.Follow
+      RealWorld.Conduit.Users.Web.Profiles.Unfollow
+      RealWorld.Conduit.Users.Web.Profiles.View
       RealWorld.Conduit.Users.Web.Register
       RealWorld.Conduit.Web
       RealWorld.Conduit.Web.API
