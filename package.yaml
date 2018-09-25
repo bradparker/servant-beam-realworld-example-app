@@ -67,6 +67,12 @@ library:
   source-dirs:
     - src
   exposed-modules:
+    - RealWorld.Conduit.Articles.Database
+    - RealWorld.Conduit.Articles.Database.Article
+    - RealWorld.Conduit.Articles.Database.Article.Attributes
+    - RealWorld.Conduit.Articles.Database.Commands
+    - RealWorld.Conduit.Articles.Database.Decorated
+    - RealWorld.Conduit.Articles.Database.Queries
     - RealWorld.Conduit.Attribute
     - RealWorld.Conduit.Database
     - RealWorld.Conduit.Handle
@@ -119,6 +125,8 @@ tests:
     source-dirs:
       - spec
     other-modules:
+      - RealWorld.Conduit.Articles.Database.Article.AttributesSpec
+      - RealWorld.Conduit.Articles.DatabaseSpec
       - RealWorld.Conduit.Spec
       - RealWorld.Conduit.Spec.Database
       - RealWorld.Conduit.Spec.Web
