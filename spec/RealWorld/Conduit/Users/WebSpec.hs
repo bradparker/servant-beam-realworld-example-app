@@ -1,5 +1,6 @@
 module RealWorld.Conduit.Users.WebSpec
   ( spec
+  , register
   ) where
 
 import Control.Monad ((=<<))

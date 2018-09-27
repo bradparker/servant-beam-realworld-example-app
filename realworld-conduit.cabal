@@ -4,7 +4,7 @@ cabal-version: >= 1.10
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b51135ebf9b398a31551d42afcbd592599eb252f34493a5afe42011710632668
+-- hash: fd1abd33665f1c6c6f60d9e1bb4d29a47dd9aa4b54950dd5cb1e87be44ecd203
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -24,6 +24,9 @@ library
       RealWorld.Conduit.Articles.Database.Commands
       RealWorld.Conduit.Articles.Database.Decorated
       RealWorld.Conduit.Articles.Database.Queries
+      RealWorld.Conduit.Articles.Web
+      RealWorld.Conduit.Articles.Web.Article
+      RealWorld.Conduit.Articles.Web.Create
       RealWorld.Conduit.Attribute
       RealWorld.Conduit.Database
       RealWorld.Conduit.Handle
@@ -147,6 +150,7 @@ test-suite spec
   other-modules:
       RealWorld.Conduit.Articles.Database.Article.AttributesSpec
       RealWorld.Conduit.Articles.DatabaseSpec
+      RealWorld.Conduit.Articles.WebSpec
       RealWorld.Conduit.Spec
       RealWorld.Conduit.Spec.Database
       RealWorld.Conduit.Spec.Web
