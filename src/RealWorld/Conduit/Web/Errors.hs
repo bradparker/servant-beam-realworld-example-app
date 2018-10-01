@@ -1,14 +1,15 @@
 module RealWorld.Conduit.Web.Errors
   ( ErrorBody(..)
+  , failedValidation
+  , forbidden
+  , internalServerError
   , notAuthorized
   , notFound
-  , failedValidation
-  , internalServerError
   ) where
 
 import Data.Text (Text)
 import Data.Maybe (Maybe(Nothing, Just))
-import Servant (err401, err404, err422, err500, errBody, ServantErr)
+import Servant (err401, err403, err404, err422, err500, errBody, ServantErr)
 import Data.Aeson (ToJSON, encode)
 import GHC.Generics (Generic)
 import Data.Semigroup ((<>))
@@ -27,6 +28,16 @@ notAuthorized =
       body :: ErrorBody ()
       body = ErrorBody
         { message = "Not Authorized"
+        , errors = Nothing
+        }
+
+forbidden :: ServantErr
+forbidden =
+  err403 {errBody = encode body}
+    where
+      body :: ErrorBody ()
+      body = ErrorBody
+        { message = "Forbidden"
         , errors = Nothing
         }
 

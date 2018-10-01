@@ -75,7 +75,11 @@ library:
     - RealWorld.Conduit.Articles.Database.Queries
     - RealWorld.Conduit.Articles.Web
     - RealWorld.Conduit.Articles.Web.Article
+    - RealWorld.Conduit.Articles.Web.Article.Attributes
     - RealWorld.Conduit.Articles.Web.Create
+    - RealWorld.Conduit.Articles.Web.Destroy
+    - RealWorld.Conduit.Articles.Web.Update
+    - RealWorld.Conduit.Articles.Web.View
     - RealWorld.Conduit.Attribute
     - RealWorld.Conduit.Database
     - RealWorld.Conduit.Handle
