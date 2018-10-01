@@ -3,6 +3,7 @@ module RealWorld.Conduit.Articles.Web.Update
   , Update
   ) where
 
+import Control.Applicative (pure)
 import Control.Monad (unless)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Trans.Except (withExceptT)
@@ -10,13 +11,16 @@ import Data.Eq ((==))
 import Data.Foldable (traverse_)
 import Data.Function (($))
 import Data.Functor ((<$>))
+import Data.Maybe (Maybe(Just))
 import Data.Text (Text)
 import Database.Beam (primaryKey)
 import qualified RealWorld.Conduit.Articles.Database as Database
+import qualified RealWorld.Conduit.Articles.Database.Article as Database
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Database.Article.Attributes (forUpdate)
-import RealWorld.Conduit.Articles.Web.Article (Article, fromDecorated)
+import RealWorld.Conduit.Articles.Web.Article (Article)
 import qualified RealWorld.Conduit.Articles.Web.Article.Attributes as Attributes
+import RealWorld.Conduit.Articles.Web.Create (decorateArticle)
 import RealWorld.Conduit.Articles.Web.View (loadArticleBySlug)
 import RealWorld.Conduit.Handle (Handle(..))
 import RealWorld.Conduit.Users.Database.User (User)
@@ -47,7 +51,8 @@ handler handle slug (Namespace params) authResult = do
   user <- loadAuthorizedUser handle authResult
   article <- loadArticleBySlug handle slug
   authorizeUserToUpdateArticle user article
-  Namespace <$> updateArticle handle user article params
+  updated <- updateArticle handle article params
+  Namespace <$> decorateArticle handle (Just user) updated
 
 authorizeUserToUpdateArticle :: User -> Persisted.Article -> Handler ()
 authorizeUserToUpdateArticle user article =
@@ -55,13 +60,13 @@ authorizeUserToUpdateArticle user article =
 
 updateArticle ::
      Handle
-  -> User
   -> Persisted.Article
   -> Attributes.Update
-  -> Handler Article
-updateArticle handle user article params =
+  -> Handler Database.Article
+updateArticle handle article params =
   withDatabaseConnection handle $ \conn -> do
-    attributes <- Handler $
+    attributes <-
+      Handler $
       withExceptT failedValidation $
       forUpdate
         conn
@@ -71,5 +76,7 @@ updateArticle handle user article params =
         (Attributes.body params)
     liftIO $ do
       updated <- Database.update conn article attributes
-      traverse_ (Database.replaceTags conn (primaryKey article)) (Attributes.tagList params)
-      fromDecorated <$> Database.decorate conn user updated
+      traverse_
+        (Database.replaceTags conn (primaryKey article))
+        (Attributes.tagList params)
+      pure updated

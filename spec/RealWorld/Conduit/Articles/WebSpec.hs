@@ -20,6 +20,7 @@ import Network.HTTP.Types
   ( hAuthorization
   , status200
   , status201
+  , status204
   , status404
   , status422
   )
@@ -45,7 +46,7 @@ import qualified RealWorld.Conduit.Web as Web
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace), unNamespace)
 import Servant ((:<|>)((:<|>)), serveWithContext)
 import Test.Hspec (Spec, around, context, describe, it, shouldBe)
-import Test.Hspec.Wai.Extended (WaiSession, post', put', delete', get')
+import Test.Hspec.Wai.Extended (WaiSession, delete', get', post', put')
 import Test.Hspec.Wai.JSON (json)
 
 type ArticlesAndUsers = Articles :<|> Users
@@ -106,7 +107,7 @@ spec =
                       title: "My cool thing",
                       description: "Yet more about it.",
                       body: "The whole kit and kaboodle.",
-                      tagList: []
+                      tagList: ["cats", "dogs"]
                     }
                   }|]
           liftIO $ do
@@ -119,6 +120,8 @@ spec =
               (articleFromResponse =<< res) `shouldBe` Right "Yet more about it."
             Article.body <$>
               (articleFromResponse =<< res) `shouldBe` Right "The whole kit and kaboodle."
+            Article.tagList <$>
+              (articleFromResponse =<< res) `shouldBe` Right ["cats", "dogs"]
 
       context "when provided a valid body with invalid values" $
         it "responds with 422 and a json encoded error response" $ do
@@ -172,7 +175,7 @@ spec =
                     { Attributes.title = "Title"
                     , Attributes.description = "Description."
                     , Attributes.body = "Body."
-                    , Attributes.tagList = Set.empty
+                    , Attributes.tagList = Set.fromList ["tag1", "tag2", "tag3"]
                     }
               lift $ get' (encodeUtf8 ("/api/articles/" <> Article.slug article)) []
           liftIO $ do
@@ -185,6 +188,8 @@ spec =
               (articleFromResponse =<< res) `shouldBe` Right "Description."
             Article.body <$>
               (articleFromResponse =<< res) `shouldBe` Right "Body."
+            Article.tagList <$>
+              (articleFromResponse =<< res) `shouldBe` Right ["tag1", "tag2", "tag3"]
 
     describe "PUT /api/articles/:slug" $ do
       context "when article doesn't exist" $
@@ -199,7 +204,8 @@ spec =
                   [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
                   [json|{
                       article: {
-                        title: "Updated title"
+                        title: "Updated title",
+                        tagsList: ["updated", "tags"]
                       }
                     }|]
           liftIO $ simpleStatus <$> res `shouldBe` Right status404
@@ -220,7 +226,8 @@ spec =
                     [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
                     [json|{
                         article: {
-                          title: "Updated title"
+                          title: "Updated title",
+                          tagList: ["updated", "tags"]
                         }
                       }|]
             liftIO $ do
@@ -229,6 +236,9 @@ spec =
                 (articleFromResponse =<< res) `shouldBe` Right "updated-title"
               Article.title <$>
                 (articleFromResponse =<< res) `shouldBe` Right "Updated title"
+              Set.fromList . Article.tagList <$>
+                (articleFromResponse =<< res) `shouldBe`
+                Right (Set.fromList ["updated", "tags"])
 
         context "when provided a valid body with invalid values" $
           it "responds with 422 and a json encoded error response" $ do
@@ -288,4 +298,4 @@ spec =
                 delete'
                   (encodeUtf8 ("/api/articles/" <> Article.slug article))
                   [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
-          liftIO $ simpleStatus <$> res `shouldBe` Right status200
+          liftIO $ simpleStatus <$> res `shouldBe` Right status204

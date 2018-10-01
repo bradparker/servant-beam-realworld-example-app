@@ -4,13 +4,15 @@ module RealWorld.Conduit.Articles.Web.Unfavorite
   ) where
 
 import Control.Monad.IO.Class (liftIO)
-import Data.Function (($), (.))
+import Data.Function (($))
 import Data.Functor ((<$>), void)
+import Data.Maybe (Maybe(Just))
 import Data.Text (Text)
 import Database.Beam (primaryKey)
 import qualified RealWorld.Conduit.Articles.Database as Database
 import qualified RealWorld.Conduit.Articles.Database.Article as Database
-import RealWorld.Conduit.Articles.Web.Article (Article, fromDecorated)
+import RealWorld.Conduit.Articles.Web.Article (Article)
+import RealWorld.Conduit.Articles.Web.Create (decorateArticle)
 import RealWorld.Conduit.Articles.Web.View (loadArticleBySlug)
 import RealWorld.Conduit.Handle (Handle(..))
 import RealWorld.Conduit.Users.Database.User (User)
@@ -35,8 +37,7 @@ handler handle authResult slug = do
   user <- loadAuthorizedUser handle authResult
   article <- loadArticleBySlug handle slug
   unfavoriteArticle handle user article
-  withDatabaseConnection handle $ \conn ->
-    Namespace . fromDecorated <$> liftIO (Database.decorate conn user article)
+  Namespace <$> decorateArticle handle (Just user) article
 
 unfavoriteArticle :: Handle -> User -> Database.Article -> Handler ()
 unfavoriteArticle handle user article =
