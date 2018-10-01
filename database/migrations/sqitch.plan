@@ -7,3 +7,4 @@ create-follows [create-users] 2018-09-23T10:02:01Z Brad Parker,,, <brad@brad> # 
 create-articles [create-users] 2018-09-25T10:47:40Z Brad Parker,,, <brad@brad> # Add articles table.
 create-tags 2018-10-01T03:07:40Z Brad Parker,,, <brad@brad> # Create the tags table. A big ol' set of strings.
 create-article-tags [create-tags create-articles] 2018-10-01T03:08:58Z Brad Parker,,, <brad@brad> # Create the article tags join table.
+create-favorites [create-articles create-users] 2018-10-01T07:37:58Z Brad Parker,,, <brad@brad> # Create favorites table. A join between users and articles.

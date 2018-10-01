@@ -2,7 +2,9 @@ module RealWorld.Conduit.Articles.Database.Commands
   ( assignTags
   , create
   , destroy
+  , favorite
   , replaceTags
+  , unfavorite
   , update
   ) where
 
@@ -17,7 +19,8 @@ import Data.Set (Set)
 import Data.Text (Text)
 import Data.Time (getCurrentTime)
 import Database.Beam
-  ( (<-.)
+  ( (&&.)
+  , (<-.)
   , (==.)
   , default_
   , delete
@@ -46,6 +49,7 @@ import RealWorld.Conduit.Articles.Database.Article
 import RealWorld.Conduit.Articles.Database.Article.Attributes (Attributes(..))
 import RealWorld.Conduit.Articles.Database.ArticleTag (ArticleTagT(ArticleTag))
 import qualified RealWorld.Conduit.Articles.Database.ArticleTag as ArticleTag
+import RealWorld.Conduit.Articles.Database.Favorite (Favorite, FavoriteT(..))
 import RealWorld.Conduit.Database (ConduitDb(..), conduitDb, insertOne)
 import qualified RealWorld.Conduit.Tags.Database as Tag
 import RealWorld.Conduit.Users.Database.User (UserId)
@@ -111,5 +115,18 @@ destroy :: Connection -> ArticleId -> IO ()
 destroy conn article =
   runBeamPostgres conn $
   runDelete $
-  delete (conduitArticles conduitDb) $ \candidate ->
-    primaryKey candidate ==. val_ article
+  delete (conduitArticles conduitDb) ((val_ article ==.) . primaryKey)
+
+favorite :: Connection -> ArticleId -> UserId -> IO Favorite
+favorite conn article user =
+  insertOne
+    conn
+    (conduitFavorites conduitDb)
+    (insertValues [Favorite article user])
+
+unfavorite :: Connection -> ArticleId -> UserId -> IO ()
+unfavorite conn article user =
+  runBeamPostgres conn $
+  runDelete $
+  delete (conduitFavorites conduitDb) $ \(Favorite favArticle favUser) ->
+    favUser ==. val_ user &&. favArticle ==. val_ article

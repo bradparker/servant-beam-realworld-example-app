@@ -9,16 +9,16 @@ import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)
 import Data.Function (($), (.))
 import Data.Functor ((<$>))
 import Data.Text (Text)
-import qualified RealWorld.Conduit.Users.Database as Users
 import qualified RealWorld.Conduit.Articles.Database as Database
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Web.Article (Article, fromDecorated)
 import RealWorld.Conduit.Handle (Handle(..))
+import qualified RealWorld.Conduit.Users.Database as Users
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Web.Errors (notFound)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
 import Servant (Handler(Handler))
-import Servant.API ((:>), Capture, JSON, Get)
+import Servant.API ((:>), Capture, Get, JSON)
 
 type View =
   "api" :>

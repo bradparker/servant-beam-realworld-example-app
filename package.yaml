@@ -74,12 +74,15 @@ library:
     - RealWorld.Conduit.Articles.Database.ArticleTag
     - RealWorld.Conduit.Articles.Database.Commands
     - RealWorld.Conduit.Articles.Database.Decorated
+    - RealWorld.Conduit.Articles.Database.Favorite
     - RealWorld.Conduit.Articles.Database.Queries
     - RealWorld.Conduit.Articles.Web
     - RealWorld.Conduit.Articles.Web.Article
     - RealWorld.Conduit.Articles.Web.Article.Attributes
     - RealWorld.Conduit.Articles.Web.Create
     - RealWorld.Conduit.Articles.Web.Destroy
+    - RealWorld.Conduit.Articles.Web.Favorite
+    - RealWorld.Conduit.Articles.Web.Unfavorite
     - RealWorld.Conduit.Articles.Web.Update
     - RealWorld.Conduit.Articles.Web.View
     - RealWorld.Conduit.Attribute
