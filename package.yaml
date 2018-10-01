@@ -16,6 +16,7 @@ dependencies:
   - beam-core
   - beam-postgres
   - bytestring
+  - conduit
   - containers
   - data-default
   - http-types
@@ -70,6 +71,7 @@ library:
     - RealWorld.Conduit.Articles.Database
     - RealWorld.Conduit.Articles.Database.Article
     - RealWorld.Conduit.Articles.Database.Article.Attributes
+    - RealWorld.Conduit.Articles.Database.ArticleTag
     - RealWorld.Conduit.Articles.Database.Commands
     - RealWorld.Conduit.Articles.Database.Decorated
     - RealWorld.Conduit.Articles.Database.Queries
@@ -84,6 +86,8 @@ library:
     - RealWorld.Conduit.Database
     - RealWorld.Conduit.Handle
     - RealWorld.Conduit.Options
+    - RealWorld.Conduit.Tags.Database
+    - RealWorld.Conduit.Tags.Database.Tag
     - RealWorld.Conduit.Users.Database
     - RealWorld.Conduit.Users.Database.Commands
     - RealWorld.Conduit.Users.Database.Credentials

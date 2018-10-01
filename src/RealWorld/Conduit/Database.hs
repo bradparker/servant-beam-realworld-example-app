@@ -53,15 +53,19 @@ import Database.PostgreSQL.Simple (Connection, connectPostgreSQL)
 import GHC.Generics (Generic)
 import RealWorld.Conduit.Articles.Database.Article (ArticleT)
 import qualified RealWorld.Conduit.Articles.Database.Article as Article
+import RealWorld.Conduit.Articles.Database.ArticleTag (ArticleTagT)
+import RealWorld.Conduit.Tags.Database.Tag (TagT)
 import RealWorld.Conduit.Users.Database.Follow (FollowT)
 import RealWorld.Conduit.Users.Database.User (UserT)
 import System.IO (IO)
 import Text.Show (Show)
 
 data ConduitDb f = ConduitDb
-  { conduitArticles :: f (TableEntity ArticleT)
-  , conduitUsers :: f (TableEntity UserT)
+  { conduitArticleTags :: f (TableEntity ArticleTagT)
+  , conduitArticles :: f (TableEntity ArticleT)
   , conduitFollows :: f (TableEntity FollowT)
+  , conduitTags :: f (TableEntity TagT)
+  , conduitUsers :: f (TableEntity UserT)
   } deriving (Generic)
 
 instance Database Postgres ConduitDb

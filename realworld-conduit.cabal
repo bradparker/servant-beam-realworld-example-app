@@ -4,7 +4,7 @@ cabal-version: >= 1.10
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 68f2324d349f4569080dcf218464ba7a7441f84d2b683f6b76812426718ba66b
+-- hash: 95caba15c17d7886f06e539817c564d803d2ec6222c531e53eeb0f7639c233f0
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -21,6 +21,7 @@ library
       RealWorld.Conduit.Articles.Database
       RealWorld.Conduit.Articles.Database.Article
       RealWorld.Conduit.Articles.Database.Article.Attributes
+      RealWorld.Conduit.Articles.Database.ArticleTag
       RealWorld.Conduit.Articles.Database.Commands
       RealWorld.Conduit.Articles.Database.Decorated
       RealWorld.Conduit.Articles.Database.Queries
@@ -35,6 +36,8 @@ library
       RealWorld.Conduit.Database
       RealWorld.Conduit.Handle
       RealWorld.Conduit.Options
+      RealWorld.Conduit.Tags.Database
+      RealWorld.Conduit.Tags.Database.Tag
       RealWorld.Conduit.Users.Database
       RealWorld.Conduit.Users.Database.Commands
       RealWorld.Conduit.Users.Database.Credentials
@@ -75,6 +78,7 @@ library
     , beam-core
     , beam-postgres
     , bytestring
+    , conduit
     , containers
     , data-default
     , http-types
@@ -118,6 +122,7 @@ executable realworld-conduit
     , beam-core
     , beam-postgres
     , bytestring
+    , conduit
     , containers
     , data-default
     , http-types
@@ -172,6 +177,7 @@ test-suite spec
     , beam-core
     , beam-postgres
     , bytestring
+    , conduit
     , containers
     , data-default
     , hspec

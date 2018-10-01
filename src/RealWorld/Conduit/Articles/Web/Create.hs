@@ -52,4 +52,8 @@ createArticle handle user params =
         (Attributes.body params)
     lift $ do
       article <- Database.create conn (primaryKey user) attributes
+      Database.assignTags
+        conn
+        (primaryKey article)
+        (Attributes.tagList params)
       fromDecorated <$> Database.decorate conn user article
