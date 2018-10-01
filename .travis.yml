@@ -3,5 +3,7 @@ language: nix
 script: nix-shell .travis/shell.nix --run .travis/test
 before_script:
   - nix-shell .travis/shell.nix --run .travis/setup
+addons:
+  postgresql: "9.6"
 services:
   - postgresql
