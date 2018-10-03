@@ -8,12 +8,12 @@ module RealWorld.Conduit.Articles.Database.Queries
 
 import Control.Applicative ((<*>), pure)
 import Control.Lens (_1, _2, _3, _4, _5, view)
-import Data.Bool (Bool(False), otherwise)
-import Data.Eq ((/=))
-import Data.Foldable (foldr)
+import Data.Bool (Bool(False))
+import Data.Foldable (foldr1)
 import Data.Function (($), (.))
 import Data.Functor ((<$>))
 import Data.Int (Int)
+import Data.List.NonEmpty (groupWith)
 import Data.Maybe (Maybe, listToMaybe, maybe, maybeToList)
 import Data.Semigroup (Semigroup(..))
 import Data.Text (Text)
@@ -44,7 +44,8 @@ import Database.PostgreSQL.Simple (Connection)
 import RealWorld.Conduit.Articles.Database.Article (Article, ArticleT(..))
 import qualified RealWorld.Conduit.Articles.Database.Article as Article
 import qualified RealWorld.Conduit.Articles.Database.ArticleTag as ArticleTag
-import RealWorld.Conduit.Articles.Database.Decorated (Decorated(..))
+import RealWorld.Conduit.Articles.Database.Decorated (Decorated(Decorated))
+import qualified RealWorld.Conduit.Articles.Database.Decorated as Decorated
 import RealWorld.Conduit.Articles.Database.Favorite (FavoriteT(..))
 import qualified RealWorld.Conduit.Articles.Database.Favorite as Favorite
 import RealWorld.Conduit.Database (ConduitDb(..), conduitDb, findBy)
@@ -102,7 +103,8 @@ findDecorated conn currentUser scope =
              currentUser))
 
 aggregateRows :: [(Article, User, Maybe Text, Int, Bool)] -> [Decorated]
-aggregateRows = foldr (aggregate . toDecorated) []
+aggregateRows =
+  (foldr1 (<>) <$>) . groupWith (Article.id . Decorated.article) . (toDecorated <$>)
   where
     toDecorated =
       Decorated
@@ -111,10 +113,6 @@ aggregateRows = foldr (aggregate . toDecorated) []
         <*> maybeToList . view _3
         <*> view _4
         <*> view _5
-    aggregate a [] = [a]
-    aggregate a@Decorated {article = artA} ~(b@Decorated {article = artB}:bs)
-      | artA /= artB = a : b : bs
-      | otherwise = a <> b : bs
 
 type QueryExpression s = QExpr PgExpressionSyntax s
 
