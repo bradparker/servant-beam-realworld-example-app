@@ -3,18 +3,13 @@ module RealWorld.Conduit.Articles.Web.Unfavorite
   , Unfavorite
   ) where
 
-import Control.Monad.IO.Class (liftIO)
-import Data.Function (($))
-import Data.Functor ((<$>), void)
-import Data.Maybe (Maybe(Just))
-import Data.Text (Text)
 import Database.Beam (primaryKey)
 import qualified RealWorld.Conduit.Articles.Database as Database
 import qualified RealWorld.Conduit.Articles.Database.Article as Database
 import RealWorld.Conduit.Articles.Web.Article (Article)
 import RealWorld.Conduit.Articles.Web.Create (decorateArticle)
 import RealWorld.Conduit.Articles.Web.View (loadArticleBySlug)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
@@ -32,14 +27,14 @@ type Unfavorite =
   "favorite" :>
   Delete '[JSON] (Namespace "article" Article)
 
-handler :: Handle -> AuthResult Claim -> Text -> Handler (Namespace "article" Article)
-handler handle authResult slug = do
-  user <- loadAuthorizedUser handle authResult
-  article <- loadArticleBySlug handle slug
-  unfavoriteArticle handle user article
-  Namespace <$> decorateArticle handle (Just user) article
+handler :: Environment -> AuthResult Claim -> Text -> Handler (Namespace "article" Article)
+handler environment authResult slug = do
+  user <- loadAuthorizedUser environment authResult
+  article <- loadArticleBySlug environment slug
+  unfavoriteArticle environment user article
+  Namespace <$> decorateArticle environment (Just user) article
 
-unfavoriteArticle :: Handle -> User -> Database.Article -> Handler ()
-unfavoriteArticle handle user article =
-  withDatabaseConnection handle $ \conn ->
+unfavoriteArticle :: Environment -> User -> Database.Article -> Handler ()
+unfavoriteArticle environment user article =
+  withDatabaseConnection environment $ \conn ->
     liftIO $ void $ Database.unfavorite conn (primaryKey article) (primaryKey user)

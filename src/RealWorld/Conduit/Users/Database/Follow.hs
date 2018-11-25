@@ -4,10 +4,7 @@ module RealWorld.Conduit.Users.Database.Follow
   ) where
 
 import RealWorld.Conduit.Users.Database.User (UserT)
-import Control.Applicative ((<*>))
-import Data.Functor ((<$>))
 import Database.Beam (Beamable, Identity, PrimaryKey, Table(..))
-import GHC.Generics (Generic)
 
 data FollowT f = Follow
   { follower :: PrimaryKey UserT f

@@ -3,24 +3,16 @@ module RealWorld.Conduit.Users.Web.Login
   , handler
   ) where
 
-import Control.Monad.Trans.Except (ExceptT, withExceptT)
-import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)
+import Control.Monad.Trans.Except (withExceptT)
 import Data.Aeson (ToJSON, encode)
-import Data.Function (($), (.))
-import Data.Functor ((<$>))
-import Data.String (String)
-import Data.Text (Text)
 import qualified Data.Text as Text
-import GHC.Generics (Generic)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Database
 import RealWorld.Conduit.Users.Database.Credentials (Credentials)
 import RealWorld.Conduit.Users.Web.Account (Account, fromUser)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
 import Servant (Handler(Handler), ServantErr, err401, err500, errBody)
 import Servant.API ((:>), JSON, Post, ReqBody)
-import System.IO (IO)
-import Text.Show (show)
 
 type Login =
   "api" :>
@@ -31,7 +23,7 @@ type Login =
 
 data Error
   = NotFound
-  | InternalServerError String
+  | InternalServerError Text
 
 data ErrorPayload e = ErrorPayload
   { message :: Text
@@ -41,13 +33,13 @@ data ErrorPayload e = ErrorPayload
 deriving instance ToJSON e => ToJSON (ErrorPayload e)
 
 handler ::
-     Handle
+     Environment
   -> Namespace "user" Credentials
   -> Handler (Namespace "user" Account)
-handler handle (Namespace params) =
+handler environment (Namespace params) =
   Handler $
   withExceptT toServantError $
-  Namespace <$> login handle params
+  Namespace <$> login environment params
 
 toServantError :: Error -> ServantErr
 toServantError NotFound =
@@ -55,8 +47,8 @@ toServantError NotFound =
 toServantError (InternalServerError e) =
   err500 {errBody = encode (ErrorPayload "Internal server error" e)}
 
-login :: Handle -> Credentials -> ExceptT Error IO Account
-login Handle {withDatabaseConnection, jwtSettings} creds =
+login :: Environment -> Credentials -> ExceptT Error IO Account
+login Environment {withDatabaseConnection, jwtSettings} creds =
   withDatabaseConnection $ \conn -> do
     user <-
       maybeToExceptT NotFound $ MaybeT $ Database.findByCredentials conn creds

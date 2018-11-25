@@ -4,8 +4,6 @@ module RealWorld.Conduit.Options
   , octKey
   ) where
 
-import Control.Applicative ((<*>))
-import Control.Monad ((=<<))
 import Crypto.JOSE
   ( JWK
   , KeyMaterial(OctKeyMaterial)
@@ -13,14 +11,7 @@ import Crypto.JOSE
   , fromKeyMaterial
   )
 import Crypto.JOSE.Types (Base64Octets(Base64Octets))
-import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as ByteString
-import Data.Function ((.))
-import Data.Functor ((<$>))
-import Data.Int (Int)
-import Data.Maybe (Maybe, maybe)
-import Data.Monoid ((<>), mempty)
-import Data.String (String)
 import Options.Applicative
   ( Parser
   , auto
@@ -40,9 +31,6 @@ import Options.Applicative
   , value
   )
 import System.Environment (lookupEnv)
-import System.IO (IO)
-import Text.Read (readMaybe)
-import Text.Show (Show)
 
 data Options = Options
   { port :: Int

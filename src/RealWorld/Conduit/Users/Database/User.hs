@@ -5,15 +5,8 @@ module RealWorld.Conduit.Users.Database.User
   , PrimaryKey(UserId, unUserId)
   ) where
 
-import Data.Eq (Eq)
-import Data.Function ((.))
-import Data.Int (Int)
-import Data.Maybe (Maybe)
-import Data.Ord (Ord)
-import Data.Text (Text)
+import Prelude hiding (id)
 import Database.Beam (Beamable, Columnar, Identity, PrimaryKey, Table(..))
-import GHC.Generics (Generic)
-import Text.Show (Show)
 
 data UserT f = User
   { id :: Columnar f Int

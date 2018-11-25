@@ -4,7 +4,7 @@ cabal-version: >= 1.10
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 9a6e82acda9303066898d5caa96d66a428d69012166ca8e3b9650b329b994d7a
+-- hash: 2aa62f390bad9ed698461e3793d5cdb6d6bcd2f54fd7fff025b1ac351671ff1e
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -18,6 +18,7 @@ build-type:     Simple
 
 library
   exposed-modules:
+      Prelude
       RealWorld.Conduit.Articles.Database
       RealWorld.Conduit.Articles.Database.Article
       RealWorld.Conduit.Articles.Database.Article.Attributes
@@ -39,7 +40,7 @@ library
       RealWorld.Conduit.Articles.Web.View
       RealWorld.Conduit.Attribute
       RealWorld.Conduit.Database
-      RealWorld.Conduit.Handle
+      RealWorld.Conduit.Environment
       RealWorld.Conduit.Options
       RealWorld.Conduit.Tags.Database
       RealWorld.Conduit.Tags.Database.Tag
@@ -75,11 +76,11 @@ library
       Paths_realworld_conduit
   hs-source-dirs:
       src
-  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
+  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
   ghc-options: -Wall
   build-depends:
       aeson
-    , base >=4.10 && <4.12
+    , base-noprelude >=4.10 && <4.12
     , beam-core
     , beam-postgres
     , bytestring
@@ -93,6 +94,7 @@ library
     , monad-control
     , optparse-applicative
     , postgresql-simple
+    , relude
     , resource-pool
     , scrypt
     , servant
@@ -120,11 +122,11 @@ executable realworld-conduit
       Paths_realworld_conduit
   hs-source-dirs:
       app
-  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
+  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
   ghc-options: -Wall
   build-depends:
       aeson
-    , base >=4.10 && <4.12
+    , base-noprelude >=4.10 && <4.12
     , beam-core
     , beam-postgres
     , bytestring
@@ -139,6 +141,7 @@ executable realworld-conduit
     , optparse-applicative
     , postgresql-simple
     , realworld-conduit
+    , relude
     , resource-pool
     , scrypt
     , servant
@@ -176,11 +179,11 @@ test-suite spec
       Test.Hspec.Wai.Extended
   hs-source-dirs:
       spec
-  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns NoImplicitPrelude OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances QuasiQuotes
+  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances QuasiQuotes
   ghc-options: -Wall
   build-depends:
       aeson
-    , base >=4.10 && <4.12
+    , base-noprelude >=4.10 && <4.12
     , beam-core
     , beam-postgres
     , bytestring
@@ -198,6 +201,7 @@ test-suite spec
     , optparse-applicative
     , postgresql-simple
     , realworld-conduit
+    , relude
     , resource-pool
     , scrypt
     , servant

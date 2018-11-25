@@ -3,15 +3,9 @@ module RealWorld.Conduit.Web.Namespace
   , unNamespace
   ) where
 
-import Control.Applicative (pure)
 import Control.Lens ((.~))
 import Data.Aeson (FromJSON(..), ToJSON(..), (.:), (.=), object, withObject)
-import Data.Function (($), (&), (.))
-import Data.Functor ((<$>))
 import qualified Data.HashMap.Strict.InsOrd as HashMap
-import Data.Maybe (Maybe(Nothing))
-import Data.Monoid (mempty)
-import Data.Proxy (Proxy(Proxy))
 import Data.Swagger
   ( NamedSchema(NamedSchema)
   , SwaggerType(SwaggerObject)
@@ -21,7 +15,6 @@ import Data.Swagger
   , required
   , type_
   )
-import Data.Text (Text)
 import qualified Data.Text as Text
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 

@@ -3,12 +3,8 @@ module RealWorld.Conduit.Users.Web.Profiles.Follow
   , handler
   ) where
 
-import Control.Monad.Trans.Class (lift)
-import Data.Function (($))
-import Data.Functor (void, (<$))
-import Data.Text (Text)
 import Database.Beam (primaryKey)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Users
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
@@ -32,18 +28,18 @@ type Follow =
   Auth '[JWT] Claim :>
   Post '[JSON] (Namespace "user" Profile)
 
-createFollow :: Handle -> User -> User -> Handler ()
-createFollow handle follower followee =
+createFollow :: Environment -> User -> User -> Handler ()
+createFollow environment follower followee =
   Handler $
-  withDatabaseConnection handle $ \conn ->
+  withDatabaseConnection environment $ \conn ->
     lift $ void $ Users.follow conn (primaryKey follower) (primaryKey followee)
 
 handler ::
-     Handle
+     Environment
   -> Username
   -> AuthResult Claim
   -> Handler (Namespace "user" Profile)
-handler handle username authresult = do
-  user <- loadAuthorizedUser handle authresult
-  profile <- loadUserByUserName handle username
-  Namespace (Profile.fromUser profile) <$ createFollow handle user profile
+handler environment username authresult = do
+  user <- loadAuthorizedUser environment authresult
+  profile <- loadUserByUserName environment username
+  Namespace (Profile.fromUser profile) <$ createFollow environment user profile

@@ -4,8 +4,6 @@ module RealWorld.Conduit.Web.Swagger
   ) where
 
 import Control.Lens ((.~), (?~))
-import Data.Function ((&), (.))
-import Data.Proxy (Proxy(Proxy))
 import Data.Swagger (Swagger, description, info, title, version)
 import RealWorld.Conduit.Web.API (API)
 import Servant (Server)

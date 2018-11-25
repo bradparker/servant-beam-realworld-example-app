@@ -2,12 +2,10 @@ module RealWorld.Conduit.Spec.Web
   ( withApp
   ) where
 
-import RealWorld.Conduit.Handle (Handle)
+import RealWorld.Conduit.Environment (Environment)
 import Network.Wai (Application)
-import RealWorld.Conduit.Spec (withHandle)
+import RealWorld.Conduit.Spec (withEnvironment)
 import Test.Hspec (ActionWith)
-import System.IO (IO)
-import Data.Function ((.))
 
-withApp :: (Handle -> Application) -> ActionWith Application -> IO ()
-withApp app action = withHandle (action . app)
+withApp :: (Environment -> Application) -> ActionWith Application -> IO ()
+withApp app action = withEnvironment (action . app)

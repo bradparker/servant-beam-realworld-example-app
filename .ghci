@@ -10,7 +10,6 @@
 :set -XKindSignatures
 :set -XMultiParamTypeClasses
 :set -XNamedFieldPuns
-:set -XNoImplicitPrelude
 :set -XOverloadedStrings
 :set -XPartialTypeSignatures
 :set -XQuasiQuotes

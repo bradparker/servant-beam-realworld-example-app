@@ -3,16 +3,10 @@ module RealWorld.Conduit.Users.Web.Current.Update
   , handler
   ) where
 
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Except (ExceptT, withExceptT)
+import Control.Monad.Trans.Except (withExceptT)
 import Data.Aeson (FromJSON)
-import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.Maybe (Maybe)
 import Data.Swagger (ToSchema)
-import Data.Text (Text)
-import GHC.Generics (Generic)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Database
 import RealWorld.Conduit.Users.Database.User (User)
 import qualified RealWorld.Conduit.Users.Database.User.Attributes as Attributes
@@ -25,7 +19,6 @@ import Servant (Handler(Handler), ServantErr)
 import Servant.API ((:>), JSON, Put, ReqBody)
 import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
-import System.IO (IO)
 
 type Update =
   "api" :>
@@ -47,18 +40,18 @@ deriving instance FromJSON UserUpdate
 deriving instance ToSchema UserUpdate
 
 handler ::
-     Handle
+     Environment
   -> AuthResult Claim
   -> Namespace "user" UserUpdate
   -> Handler (Namespace "user" Account)
-handler handle authresult (Namespace params) = do
-  user <- loadAuthorizedUser handle authresult
-  updated <- Handler $ update handle user params
-  Namespace <$> account handle updated
+handler environment authresult (Namespace params) = do
+  user <- loadAuthorizedUser environment authresult
+  updated <- Handler $ update environment user params
+  Namespace <$> account environment updated
 
-update :: Handle -> User -> UserUpdate -> ExceptT ServantErr IO User
-update handle user params =
-  withDatabaseConnection handle $ \conn -> do
+update :: Environment -> User -> UserUpdate -> ExceptT ServantErr IO User
+update environment user params =
+  withDatabaseConnection environment $ \conn -> do
     attributes <-
       withExceptT failedValidation $
       Attributes.forUpdate

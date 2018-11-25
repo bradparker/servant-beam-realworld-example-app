@@ -3,7 +3,7 @@ module RealWorld.Conduit.Web.API
   , server
   ) where
 
-import RealWorld.Conduit.Handle (Handle)
+import RealWorld.Conduit.Environment (Environment)
 import RealWorld.Conduit.Users.Web (Users)
 import qualified RealWorld.Conduit.Users.Web as Users
 import RealWorld.Conduit.Articles.Web (Articles)
@@ -15,8 +15,8 @@ import Servant.API ((:<|>)((:<|>)))
 
 type API = Health :<|> Users :<|> Articles
 
-server :: Handle -> Server API
-server handle =
-  Health.server handle :<|>
-  Users.server handle :<|>
-  Articles.server handle
+server :: Environment -> Server API
+server environment =
+  Health.server environment :<|>
+  Users.server environment :<|>
+  Articles.server environment

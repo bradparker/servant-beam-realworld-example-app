@@ -8,15 +8,6 @@ module RealWorld.Conduit.Articles.Database.Commands
   , update
   ) where
 
-import Control.Applicative ((*>))
-import Control.Monad (void)
-import Data.Function (($), (.), id)
-import Data.Functor ((<$>))
-import Data.Functor.Identity (Identity)
-import Data.List (map)
-import Data.Maybe (Maybe(Just), catMaybes, fromMaybe, listToMaybe)
-import Data.Set (Set)
-import Data.Text (Text)
 import Data.Time (getCurrentTime)
 import Database.Beam
   ( (&&.)
@@ -53,7 +44,6 @@ import RealWorld.Conduit.Articles.Database.Favorite (Favorite, FavoriteT(..))
 import RealWorld.Conduit.Database (ConduitDb(..), conduitDb, insertOne)
 import qualified RealWorld.Conduit.Tags.Database as Tag
 import RealWorld.Conduit.Users.Database.User (UserId)
-import System.IO (IO)
 
 create :: Connection -> UserId -> Attributes Identity -> IO Article
 create conn authorId Attributes {slug, title, description, body} = do

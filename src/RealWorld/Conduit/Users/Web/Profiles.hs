@@ -3,7 +3,7 @@ module RealWorld.Conduit.Users.Web.Profiles
   , server
   ) where
 
-import RealWorld.Conduit.Handle (Handle)
+import RealWorld.Conduit.Environment (Environment)
 import RealWorld.Conduit.Users.Web.Profiles.Follow (Follow)
 import qualified RealWorld.Conduit.Users.Web.Profiles.Follow as Follow
 import RealWorld.Conduit.Users.Web.Profiles.Unfollow (Unfollow)
@@ -14,8 +14,8 @@ import Servant ((:<|>)((:<|>)), Server)
 
 type Profiles = View :<|> Follow :<|> Unfollow
 
-server :: Handle -> Server Profiles
-server handle =
-  View.handler handle :<|>
-  Follow.handler handle :<|>
-  Unfollow.handler handle
+server :: Environment -> Server Profiles
+server environment =
+  View.handler environment :<|>
+  Follow.handler environment :<|>
+  Unfollow.handler environment

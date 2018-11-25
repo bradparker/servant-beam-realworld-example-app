@@ -3,19 +3,8 @@ module RealWorld.Conduit.Users.WebSpec
   , register
   ) where
 
-import Control.Monad ((=<<))
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Except (ExceptT(..), runExceptT)
 import Data.Aeson (FromJSON, eitherDecode, encode)
 import Data.ByteString.Lazy (ByteString)
-import Data.Either (Either(Right))
-import Data.Function (($), (.))
-import Data.Functor ((<$>), void)
-import Data.Maybe (Maybe(Nothing))
-import Data.Semigroup ((<>))
-import Data.String (String)
-import Data.Text.Encoding (encodeUtf8)
 import Network.HTTP.Types
   ( hAuthorization
   , status200
@@ -27,7 +16,8 @@ import Network.HTTP.Types
   )
 import Network.Wai (Application)
 import Network.Wai.Test (SResponse(simpleBody, simpleStatus))
-import RealWorld.Conduit.Handle (Handle)
+import Prelude hiding (ByteString)
+import RealWorld.Conduit.Environment (Environment)
 import RealWorld.Conduit.Spec.Web (withApp)
 import RealWorld.Conduit.Users.Web (server, users)
 import qualified RealWorld.Conduit.Users.Web.Account as Account
@@ -42,7 +32,7 @@ import Test.Hspec (Spec, around, context, describe, it, shouldBe)
 import Test.Hspec.Wai.Extended (WaiSession, delete', get', post', put')
 import Test.Hspec.Wai.JSON (json)
 
-app :: Handle -> Application
+app :: Environment -> Application
 app handle = serveWithContext users (Web.context handle) (server handle)
 
 decodeUserNamespace :: FromJSON a => ByteString -> Either String (Namespace "user" a)

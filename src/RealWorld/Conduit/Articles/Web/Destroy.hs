@@ -3,17 +3,11 @@ module RealWorld.Conduit.Articles.Web.Destroy
   , Destroy
   ) where
 
-import Control.Monad (unless)
-import Control.Monad.IO.Class (liftIO)
-import Data.Eq ((==))
-import Data.Function (($))
-import Data.Functor ((<$))
-import Data.Text (Text)
 import Database.Beam (primaryKey)
 import qualified RealWorld.Conduit.Articles.Database as Database
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Web.View (loadArticleBySlug)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
@@ -31,21 +25,21 @@ type Destroy =
   DeleteNoContent '[JSON] NoContent
 
 handler ::
-     Handle
+     Environment
   -> Text
   -> AuthResult Claim
   -> Handler NoContent
-handler handle slug authResult = do
-  user <- loadAuthorizedUser handle authResult
-  article <- loadArticleBySlug handle slug
+handler environment slug authResult = do
+  user <- loadAuthorizedUser environment authResult
+  article <- loadArticleBySlug environment slug
   authorizeUserToDestroyArticle user article
-  NoContent <$ destroyArticle handle article
+  NoContent <$ destroyArticle environment article
 
 authorizeUserToDestroyArticle :: User -> Persisted.Article -> Handler ()
 authorizeUserToDestroyArticle user article =
   unless (Persisted.author article == primaryKey user) (throwError forbidden)
 
-destroyArticle :: Handle -> Persisted.Article -> Handler ()
-destroyArticle handle article =
-  withDatabaseConnection handle $ \conn ->
+destroyArticle :: Environment -> Persisted.Article -> Handler ()
+destroyArticle environment article =
+  withDatabaseConnection environment $ \conn ->
     liftIO $ Database.destroy conn $ primaryKey article

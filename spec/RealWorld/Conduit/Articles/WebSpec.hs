@@ -2,26 +2,10 @@ module RealWorld.Conduit.Articles.WebSpec
   ( spec
   ) where
 
-import Control.Monad ((=<<))
-import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Except (ExceptT(..), runExceptT)
 import Data.Aeson (FromJSON, eitherDecode, encode)
 import Data.ByteString.Lazy (ByteString)
-import Data.Either (Either(Right))
-import Data.Foldable (length, traverse_)
-import Data.Function (($), (.))
-import Data.Functor ((<$>), void)
-import Data.List (sort)
-import Data.Proxy (Proxy(Proxy))
-import Data.Semigroup ((<>))
 import qualified Data.Set as Set
-import Data.String (String)
-import Data.Text (Text)
-import qualified Data.Text as Text
-import Data.Text.Encoding (encodeUtf8)
 import Data.Traversable (for)
-import GHC.Int (Int)
 import Network.HTTP.Types
   ( hAuthorization
   , status200
@@ -32,6 +16,7 @@ import Network.HTTP.Types
   )
 import Network.Wai (Application)
 import Network.Wai.Test (SResponse(simpleBody, simpleStatus))
+import Prelude hiding (ByteString)
 import RealWorld.Conduit.Articles.Web (Articles)
 import qualified RealWorld.Conduit.Articles.Web as Articles
 import RealWorld.Conduit.Articles.Web.Article (Article)
@@ -40,7 +25,7 @@ import RealWorld.Conduit.Articles.Web.Article.Attributes
   ( Attributes(Attributes)
   )
 import qualified RealWorld.Conduit.Articles.Web.Article.Attributes as Attributes
-import RealWorld.Conduit.Handle (Handle)
+import RealWorld.Conduit.Environment (Environment)
 import RealWorld.Conduit.Spec.Web (withApp)
 import qualified RealWorld.Conduit.Users.Web as Users
 import RealWorld.Conduit.Users.Web (Users)
@@ -54,19 +39,18 @@ import Servant ((:<|>)((:<|>)), serveWithContext)
 import Test.Hspec (Spec, around, context, describe, it, shouldBe)
 import Test.Hspec.Wai.Extended (WaiSession, delete', get', post', put')
 import Test.Hspec.Wai.JSON (json)
-import Text.Show (show)
 
 type ArticlesAndUsers = Articles :<|> Users
 
 articlesAndUsers :: Proxy ArticlesAndUsers
 articlesAndUsers = Proxy
 
-app :: Handle -> Application
-app handle =
+app :: Environment -> Application
+app environment =
   serveWithContext
     articlesAndUsers
-    (Web.context handle)
-    (Articles.server handle :<|> Users.server handle)
+    (Web.context environment)
+    (Articles.server environment :<|> Users.server environment)
 
 decodeArticleNamespace ::
      FromJSON a => ByteString -> Either String (Namespace "article" a)
@@ -330,7 +314,7 @@ spec =
               account <- defaultAccount
               void $ createN 25 account $ \n ->
                 createParams
-                  { Attributes.title = "Title " <> Text.pack (show n)
+                  { Attributes.title = "Title " <> show n
                   }
               lift $ get' "/api/articles/" []
           liftIO $ do
@@ -344,7 +328,7 @@ spec =
               account <- defaultAccount
               void $ createN 15 account $ \n ->
                 createParams
-                  { Attributes.title = "Title " <> Text.pack (show n)
+                  { Attributes.title = "Title " <> show n
                   }
               lift $ get' "/api/articles/?limit=10" []
           liftIO $ do
@@ -358,7 +342,7 @@ spec =
               account <- defaultAccount
               void $ createN 8 account $ \n ->
                 createParams
-                  { Attributes.title = "Article " <> Text.pack (show n)
+                  { Attributes.title = "Article " <> show n
                   }
               lift $ get' "/api/articles/?limit=4" []
           liftIO $ do
@@ -379,7 +363,7 @@ spec =
               account <- defaultAccount
               void $ createN 8 account $ \n ->
                 createParams
-                  { Attributes.title = "Article " <> Text.pack (show n)
+                  { Attributes.title = "Article " <> show n
                   }
               lift $ get' "/api/articles/?limit=4&offset=4" []
           liftIO $ do
@@ -400,12 +384,12 @@ spec =
               account <- defaultAccount
               void $ createN 5 account $ \n ->
                 createParams
-                  { Attributes.title = "Tagged with foo " <> Text.pack (show n)
+                  { Attributes.title = "Tagged with foo " <> show n
                   , Attributes.tagList = Set.fromList ["foo"]
                   }
               void $ createN 5 account $ \n ->
                 createParams
-                  { Attributes.title = "Tagged with foo and bar " <> Text.pack (show n)
+                  { Attributes.title = "Tagged with foo and bar " <> show n
                   , Attributes.tagList = Set.fromList ["foo", "bar"]
                   }
               lift $ get' "/api/articles/" []
@@ -433,12 +417,12 @@ spec =
               account <- defaultAccount
               void $ createN 5 account $ \n ->
                 createParams
-                  { Attributes.title = "Tagged with foo " <> Text.pack (show n)
+                  { Attributes.title = "Tagged with foo " <> show n
                   , Attributes.tagList = Set.fromList ["foo"]
                   }
               void $ createN 5 account $ \n ->
                 createParams
-                  { Attributes.title = "Tagged with foo and bar " <> Text.pack (show n)
+                  { Attributes.title = "Tagged with foo and bar " <> show n
                   , Attributes.tagList = Set.fromList ["foo", "bar"]
                   }
               lift $ get' "/api/articles/?tag=bar" []
@@ -463,11 +447,11 @@ spec =
                 ExceptT $ register $ Registrant "secret123" "author@email.com" "author"
               void $ createN 5 account $ \n ->
                 createParams
-                  { Attributes.title = "By account " <> Text.pack (show n)
+                  { Attributes.title = "By account " <> show n
                   }
               void $ createN 5 author $ \n ->
                 createParams
-                  { Attributes.title = "By author " <> Text.pack (show n)
+                  { Attributes.title = "By author " <> show n
                   }
               lift $ get' "/api/articles/" []
           liftIO $ do
@@ -496,11 +480,11 @@ spec =
                 ExceptT $ register $ Registrant "secret123" "author@email.com" "author"
               void $ createN 5 account $ \n ->
                 createParams
-                  { Attributes.title = "By account " <> Text.pack (show n)
+                  { Attributes.title = "By account " <> show n
                   }
               void $ createN 5 author $ \n ->
                 createParams
-                  { Attributes.title = "By author " <> Text.pack (show n)
+                  { Attributes.title = "By author " <> show n
                   }
               lift $ get' "/api/articles/?author=author" []
           liftIO $ do
@@ -524,12 +508,12 @@ spec =
                 ExceptT $ register $ Registrant "secret123" "author@email.com" "author"
               byAccount <- createN 5 account $ \n ->
                 createParams
-                  { Attributes.title = "Favorited by author " <> Text.pack (show n)
+                  { Attributes.title = "Favorited by author " <> show n
                   }
               traverse_ (favorite author . Article.slug) byAccount
               void $ createN 5 author $ \n ->
                 createParams
-                  { Attributes.title = "Favorited by account " <> Text.pack (show n)
+                  { Attributes.title = "Favorited by account " <> show n
                   }
               traverse_ (favorite account . Article.slug) byAccount
               lift $ get' "/api/articles/" []
@@ -559,12 +543,12 @@ spec =
                 ExceptT $ register $ Registrant "secret123" "author@email.com" "author"
               byAccount <- createN 5 account $ \n ->
                 createParams
-                  { Attributes.title = "Favorited by author " <> Text.pack (show n)
+                  { Attributes.title = "Favorited by author " <> show n
                   }
               traverse_ (favorite author . Article.slug) byAccount
               void $ createN 5 author $ \n ->
                 createParams
-                  { Attributes.title = "Favorited by account " <> Text.pack (show n)
+                  { Attributes.title = "Favorited by account " <> show n
                   }
               traverse_ (favorite account . Article.slug) byAccount
               lift $ get' "/api/articles/?favorited=author" []

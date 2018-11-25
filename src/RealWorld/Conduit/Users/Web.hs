@@ -5,7 +5,7 @@ module RealWorld.Conduit.Users.Web
   ) where
 
 import Data.Proxy (Proxy(Proxy))
-import RealWorld.Conduit.Handle (Handle)
+import RealWorld.Conduit.Environment (Environment)
 import RealWorld.Conduit.Users.Web.Current (Current)
 import qualified RealWorld.Conduit.Users.Web.Current as Current
 import RealWorld.Conduit.Users.Web.Profiles (Profiles)
@@ -22,12 +22,12 @@ type Users =
   Current :<|>
   Profiles
 
-server :: Handle -> Server Users
-server handle =
-  Register.handler handle :<|>
-  Login.handler handle :<|>
-  Current.server handle :<|>
-  Profiles.server handle
+server :: Environment -> Server Users
+server environment =
+  Register.handler environment :<|>
+  Login.handler environment :<|>
+  Current.server environment :<|>
+  Profiles.server environment
 
 users :: Proxy Users
 users = Proxy

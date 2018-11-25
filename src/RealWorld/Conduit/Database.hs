@@ -8,14 +8,7 @@ module RealWorld.Conduit.Database
   , findBy
   ) where
 
-import Control.Applicative (pure)
-import Control.Exception (Exception, throwIO)
-import Control.Monad ((<=<))
-import Control.Monad.IO.Class (MonadIO, liftIO)
-import Data.ByteString (ByteString)
-import Data.Function (($), (.), id)
-import Data.Functor (fmap)
-import Data.Maybe (Maybe, listToMaybe, maybe)
+import Control.Exception (throwIO)
 import Database.Beam
   ( Beamable
   , Database
@@ -50,7 +43,6 @@ import Database.Beam.Postgres.Syntax
   , PgValueSyntax
   )
 import Database.PostgreSQL.Simple (Connection, connectPostgreSQL)
-import GHC.Generics (Generic)
 import RealWorld.Conduit.Articles.Database.Article (ArticleT)
 import qualified RealWorld.Conduit.Articles.Database.Article as Article
 import RealWorld.Conduit.Articles.Database.ArticleTag (ArticleTagT)
@@ -58,8 +50,6 @@ import RealWorld.Conduit.Articles.Database.Favorite (FavoriteT)
 import RealWorld.Conduit.Tags.Database.Tag (TagT)
 import RealWorld.Conduit.Users.Database.Follow (FollowT)
 import RealWorld.Conduit.Users.Database.User (UserT)
-import System.IO (IO)
-import Text.Show (Show)
 
 data ConduitDb f = ConduitDb
   { conduitArticleTags :: f (TableEntity ArticleTagT)

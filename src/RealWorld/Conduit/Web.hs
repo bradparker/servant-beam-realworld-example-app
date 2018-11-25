@@ -3,9 +3,8 @@ module RealWorld.Conduit.Web
   , context
   ) where
 
-import Data.Proxy (Proxy(Proxy))
 import Network.Wai (Application)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Web.API (API)
 import qualified RealWorld.Conduit.Web.API as API
 import RealWorld.Conduit.Web.Swagger (RealWorldConduitSwagger)
@@ -22,7 +21,7 @@ type RealWorldConduit =
   RealWorldConduitSwagger :<|>
   API
 
-server :: Handle -> Server RealWorldConduit
+server :: Environment -> Server RealWorldConduit
 server handle =
   Swagger.server :<|>
   API.server handle
@@ -30,9 +29,9 @@ server handle =
 realWorldConduit :: Proxy RealWorldConduit
 realWorldConduit = Proxy
 
-context :: Handle -> Context '[CookieSettings, JWTSettings]
+context :: Environment -> Context '[CookieSettings, JWTSettings]
 context handle =
   defaultCookieSettings :. jwtSettings handle :. EmptyContext
 
-app :: Handle -> Application
+app :: Environment -> Application
 app handle = serveWithContext realWorldConduit (context handle) (server handle)

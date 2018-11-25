@@ -5,10 +5,6 @@ module RealWorld.Conduit.Users.Database.Commands
   , unfollow
   ) where
 
-import Data.Function (($), (.))
-import Data.Functor ((<$>))
-import Data.Functor.Identity (Identity)
-import Data.Maybe (Maybe, catMaybes, fromMaybe, listToMaybe)
 import Database.Beam
   ( (&&.)
   , (<-.)
@@ -33,7 +29,6 @@ import qualified RealWorld.Conduit.Users.Database.Follow as Follow
 import qualified RealWorld.Conduit.Users.Database.User as User
 import RealWorld.Conduit.Users.Database.User (User, UserId, UserT(User))
 import RealWorld.Conduit.Users.Database.User.Attributes (Attributes(..))
-import System.IO (IO)
 
 create :: Connection -> Attributes Identity -> IO User
 create conn Attributes {password, email, username, bio, image} =

@@ -3,11 +3,8 @@ module RealWorld.Conduit.Web.Health.Service
   ) where
 
 import Data.Aeson (ToJSON)
-import Data.Bool (Bool)
 import Data.Swagger (ToSchema)
-import Data.Text (Text)
 import Data.Time (NominalDiffTime)
-import GHC.Generics (Generic)
 
 data Service = Service
   { title :: Text

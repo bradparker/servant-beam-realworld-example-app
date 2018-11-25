@@ -4,14 +4,9 @@ module RealWorld.Conduit.Articles.Database.Favorite
   , PrimaryKey(FavoriteId)
   ) where
 
-import Control.Applicative ((<*>))
-import Data.Eq (Eq)
-import Data.Functor ((<$>))
 import Database.Beam (Beamable, Identity, PrimaryKey, Table(..))
-import GHC.Generics (Generic)
 import RealWorld.Conduit.Articles.Database.Article (ArticleT)
 import RealWorld.Conduit.Users.Database.User (UserT)
-import Text.Show (Show)
 
 data FavoriteT f = Favorite
   { article :: PrimaryKey ArticleT f

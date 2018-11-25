@@ -3,14 +3,9 @@ module RealWorld.Conduit.Articles.Database.ArticleTag
   , ArticleTag
   ) where
 
-import Control.Applicative ((<*>))
-import Data.Eq (Eq)
-import Data.Functor ((<$>))
 import Database.Beam (Beamable, Identity, PrimaryKey, Table(..))
-import GHC.Generics (Generic)
 import RealWorld.Conduit.Articles.Database.Article (ArticleT)
 import RealWorld.Conduit.Tags.Database.Tag (TagT)
-import Text.Show (Show)
 
 data ArticleTagT f = ArticleTag
   { article :: PrimaryKey ArticleT f

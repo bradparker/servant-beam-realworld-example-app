@@ -5,16 +5,10 @@ module RealWorld.Conduit.Articles.Database.Article
   , PrimaryKey(..)
   ) where
 
-import Data.Eq (Eq)
-import Data.Function ((.))
-import Data.Int (Int)
-import Data.Ord (Ord)
-import Data.Text (Text)
+import Prelude hiding (id)
 import Data.Time (UTCTime)
 import Database.Beam (Beamable, Columnar, Identity, PrimaryKey, Table(..))
-import GHC.Generics (Generic)
 import RealWorld.Conduit.Users.Database.User (UserT)
-import Text.Show (Show)
 
 data ArticleT f = Article
   { id :: Columnar f Int

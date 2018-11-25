@@ -5,35 +5,19 @@ module RealWorld.Conduit.Users.Database.User.Attributes
   , forUpdate
   ) where
 
-import Control.Applicative ((<*>), pure)
-import Control.Monad.Trans.Except (ExceptT(ExceptT))
 import Crypto.Scrypt
   ( EncryptedPass(getEncryptedPass)
   , Pass(Pass)
   , encryptPassIO'
   )
 import Data.Aeson (ToJSON)
-import Data.Bool (otherwise)
-import Data.Eq (Eq, (==))
-import Data.Function (($), (.))
-import Data.Functor ((<$>))
-import Data.Functor.Compose (Compose(Compose, getCompose))
-import Data.Functor.Identity (Identity)
-import Data.Maybe (Maybe(Just, Nothing))
-import Data.Ord ((<))
-import Data.Text (Text)
 import qualified Data.Text as Text
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
-import Data.Traversable (traverse)
 import Data.Validation (Validation(Failure, Success), toEither)
 import Database.PostgreSQL.Simple (Connection)
-import GHC.Generics (Generic)
 import RealWorld.Conduit.Attribute (Attribute)
 import RealWorld.Conduit.Users.Database.Queries (findByEmail, findByUsername)
 import RealWorld.Conduit.Users.Database.User (User)
 import qualified RealWorld.Conduit.Users.Database.User as User
-import System.IO (IO)
-import Text.Show (Show)
 
 data Attributes f = Attributes
   { password :: Attribute f Text
@@ -54,8 +38,8 @@ deriving instance Eq ValidationFailure
 deriving instance ToJSON ValidationFailure
 
 encryptPassword :: Text -> IO Text
-encryptPassword pass =
-  decodeUtf8 . getEncryptedPass <$> encryptPassIO' (Pass (encodeUtf8 pass))
+encryptPassword password =
+  decodeUtf8 . getEncryptedPass <$> encryptPassIO' (Pass (encodeUtf8 password))
 
 makePassword :: Text -> Compose IO (Validation [ValidationFailure]) Text
 makePassword value

@@ -4,26 +4,17 @@ module RealWorld.Conduit.Users.Web.Account
   , account
   ) where
 
-import Control.Applicative ((<*>), pure)
-import Control.Monad.Trans.Except (ExceptT(..), withExceptT)
+import Control.Monad.Trans.Except (withExceptT)
 import Crypto.JOSE (Error)
 import Data.Aeson (FromJSON, ToJSON(..))
-import Data.Function (($), (.))
-import Data.Functor ((<$>))
-import Data.Maybe (Maybe)
 import Data.Swagger (ToSchema)
-import Data.Text (Text)
-import qualified Data.Text as Text
-import GHC.Generics (Generic)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Database.User (User)
 import qualified RealWorld.Conduit.Users.Database.User as User
 import qualified RealWorld.Conduit.Users.Web.Claim as Claim
 import RealWorld.Conduit.Web.Errors (internalServerError)
 import Servant (Handler(Handler))
 import Servant.Auth.Server (JWTSettings)
-import System.IO (IO)
-import Text.Show (Show, show)
 
 data Account = Account
   { email :: Text
@@ -46,8 +37,8 @@ fromUser jwtSettings user =
     <*> pure (User.bio user)
     <*> pure (User.image user)
 
-account :: Handle -> User -> Handler Account
-account handle user =
+account :: Environment -> User -> Handler Account
+account environment user =
   Handler $
-  withExceptT (internalServerError . Text.pack . show) $
-  fromUser (jwtSettings handle) user
+  withExceptT (internalServerError . show) $
+  fromUser (jwtSettings environment) user

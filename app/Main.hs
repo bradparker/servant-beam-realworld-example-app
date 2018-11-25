@@ -3,7 +3,6 @@ module Main
   ) where
 
 import Data.Aeson (ToJSON, encode)
-import Data.ByteString.Lazy.Char8 (putStrLn)
 import Data.Default (def)
 import Data.Map (Map, singleton)
 import Data.String (String)
@@ -16,11 +15,10 @@ import Network.Wai.Middleware.RequestLogger
   , mkRequestLogger
   )
 import Network.Wai.Middleware.RequestLogger.JSON (formatAsJSON)
-import qualified RealWorld.Conduit.Handle as Handle
+import qualified RealWorld.Conduit.Environment as Environment
 import RealWorld.Conduit.Options (Options(port), getOptions)
 import RealWorld.Conduit.Web (app)
 import System.IO (IO)
-import Text.Show (show)
 
 data Event a = Event
   { event :: String
@@ -41,7 +39,7 @@ jsonLogger =
 main :: IO ()
 main = do
   options <- getOptions
-  handle <- Handle.new options
+  environment <- Environment.new options
   logger <- jsonLogger
   putStrLn (encode (startupEvent options))
-  run (port options) (logger (app handle))
+  run (port options) (logger (app environment))

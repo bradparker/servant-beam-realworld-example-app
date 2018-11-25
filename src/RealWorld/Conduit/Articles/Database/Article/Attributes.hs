@@ -5,29 +5,15 @@ module RealWorld.Conduit.Articles.Database.Article.Attributes
   , forUpdate
   ) where
 
-import Control.Applicative ((<*>), pure)
-import Control.Monad.Trans.Except (ExceptT(ExceptT))
 import Data.Aeson (ToJSON)
-import Data.Bool ((||), otherwise)
 import Data.Char (isAlphaNum, isSpace)
-import Data.Eq (Eq, (==))
-import Data.Function (($), (.))
-import Data.Functor ((<$>))
-import Data.Functor.Compose (Compose(Compose, getCompose))
-import Data.Functor.Identity (Identity)
-import Data.Maybe (Maybe(Just, Nothing))
-import Data.Text (Text)
 import qualified Data.Text as Text
-import Data.Traversable (traverse)
 import Data.Validation (Validation(Failure, Success), toEither)
 import Database.PostgreSQL.Simple (Connection)
-import GHC.Generics (Generic)
 import RealWorld.Conduit.Articles.Database.Article (Article)
 import qualified RealWorld.Conduit.Articles.Database.Article as Article
 import RealWorld.Conduit.Articles.Database.Queries (findBySlug)
 import RealWorld.Conduit.Attribute (Attribute)
-import System.IO (IO)
-import Text.Show (Show)
 
 data Attributes f = Attributes
   { slug :: Attribute f Text

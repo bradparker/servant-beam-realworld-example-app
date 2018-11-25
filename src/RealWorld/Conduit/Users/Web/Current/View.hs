@@ -3,8 +3,7 @@ module RealWorld.Conduit.Users.Web.Current.View
   , handler
   ) where
 
-import Data.Functor ((<$>))
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Web.Account (Account, account)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
@@ -20,7 +19,7 @@ type View =
   Auth '[JWT] Claim :>
   Get '[JSON] (Namespace "user" Account)
 
-handler :: Handle -> AuthResult Claim -> Handler (Namespace "user" Account)
-handler handle authresult = do
-  user <- loadAuthorizedUser handle authresult
-  Namespace <$> account handle user
+handler :: Environment -> AuthResult Claim -> Handler (Namespace "user" Account)
+handler environment authresult = do
+  user <- loadAuthorizedUser environment authresult
+  Namespace <$> account environment user

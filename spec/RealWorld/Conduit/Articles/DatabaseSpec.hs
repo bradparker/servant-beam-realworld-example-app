@@ -2,10 +2,6 @@ module RealWorld.Conduit.Articles.DatabaseSpec
   ( spec
   ) where
 
-import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.Functor.Identity (Identity)
-import Data.Maybe (Maybe(Just, Nothing))
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Articles.Database
   ( create

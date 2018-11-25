@@ -9,19 +9,8 @@ module RealWorld.Conduit.Articles.Database.Queries
   , findByTitle
   ) where
 
-import Control.Applicative ((<*>), pure)
 import Control.Lens (_1, _2, _3, _4, _5, view)
-import Control.Monad (unless)
-import Data.Bool (Bool(False))
-import Data.Foldable (null)
-import Data.Function (($), (.), id)
-import Data.Functor ((<$>), void)
-import Data.Int (Int)
-import Data.List (map)
-import Data.Maybe (Maybe(Just), fromMaybe, listToMaybe, maybe)
 import qualified Data.Set as Set
-import Data.Text (Text)
-import Data.Tuple (fst, snd)
 import Data.Vector (Vector)
 import qualified Data.Vector as Vector
 import Database.Beam
@@ -59,7 +48,6 @@ import Database.Beam
 import Database.Beam.Postgres (pgArrayAgg, pgBoolOr, runBeamPostgres)
 import Database.Beam.Postgres.Syntax (PgExpressionSyntax, PgSelectSyntax)
 import Database.PostgreSQL.Simple (Connection)
-import Prelude (Integer)
 import RealWorld.Conduit.Articles.Database.Article (Article, ArticleT(Article))
 import qualified RealWorld.Conduit.Articles.Database.Article as Article
 import qualified RealWorld.Conduit.Articles.Database.ArticleTag as ArticleTag
@@ -75,7 +63,6 @@ import RealWorld.Conduit.Users.Database.User
   , User
   , UserT(username)
   )
-import System.IO (IO)
 
 findByTitle :: Connection -> Text -> IO (Maybe Article)
 findByTitle conn = findBy conn (all_ (conduitArticles conduitDb)) Article.title

@@ -7,12 +7,8 @@ module RealWorld.Conduit.Web.Errors
   , notFound
   ) where
 
-import Data.Text (Text)
-import Data.Maybe (Maybe(Nothing, Just))
 import Servant (err401, err403, err404, err422, err500, errBody, ServantErr)
 import Data.Aeson (ToJSON, encode)
-import GHC.Generics (Generic)
-import Data.Semigroup ((<>))
 
 data ErrorBody errors = ErrorBody
   { message :: Text

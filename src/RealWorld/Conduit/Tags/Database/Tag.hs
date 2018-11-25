@@ -5,12 +5,7 @@ module RealWorld.Conduit.Tags.Database.Tag
   , PrimaryKey(..)
   ) where
 
-import Data.Eq (Eq)
-import Data.Function ((.))
-import Data.Text (Text)
 import Database.Beam (Beamable, Columnar, Identity, PrimaryKey, Table(..))
-import GHC.Generics (Generic)
-import Text.Show (Show)
 
 newtype TagT f = Tag
   { name :: Columnar f Text

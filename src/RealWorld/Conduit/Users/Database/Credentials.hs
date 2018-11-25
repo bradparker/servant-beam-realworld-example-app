@@ -3,8 +3,6 @@ module RealWorld.Conduit.Users.Database.Credentials
   ) where
 
 import Data.Aeson (FromJSON)
-import Data.Text (Text)
-import GHC.Generics (Generic)
 import Data.Swagger (ToSchema)
 
 data Credentials = Credentials

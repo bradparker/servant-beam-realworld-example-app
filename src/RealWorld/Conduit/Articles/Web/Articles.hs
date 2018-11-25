@@ -4,9 +4,7 @@ module RealWorld.Conduit.Articles.Web.Articles
 
 import RealWorld.Conduit.Articles.Web.Article (Article)
 import Data.Aeson (FromJSON(..), ToJSON(..))
-import Data.Int (Int)
 import Data.Swagger (ToSchema)
-import GHC.Generics (Generic)
 
 data Articles = Articles
   { articles :: [Article]

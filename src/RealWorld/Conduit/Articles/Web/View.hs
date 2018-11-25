@@ -4,15 +4,11 @@ module RealWorld.Conduit.Articles.Web.View
   , View
   ) where
 
-import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)
-import Data.Function (($))
-import Data.Functor ((<$>))
-import Data.Text (Text)
 import qualified RealWorld.Conduit.Articles.Database as Database
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Web.Article (Article)
 import RealWorld.Conduit.Articles.Web.Create (decorateArticle)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (optionallyLoadAuthorizedUser)
 import RealWorld.Conduit.Web.Errors (notFound)
@@ -30,18 +26,18 @@ type View =
   Get '[JSON] (Namespace "article" Article)
 
 handler ::
-     Handle
+     Environment
   -> Text
   -> AuthResult Claim
   -> Handler (Namespace "article" Article)
-handler handle slug authResult = do
-  user <- optionallyLoadAuthorizedUser handle authResult
-  article <- loadArticleBySlug handle slug
-  Namespace <$> decorateArticle handle user article
+handler environment slug authResult = do
+  user <- optionallyLoadAuthorizedUser environment authResult
+  article <- loadArticleBySlug environment slug
+  Namespace <$> decorateArticle environment user article
 
-loadArticleBySlug :: Handle -> Text -> Handler Persisted.Article
-loadArticleBySlug handle slug =
-  withDatabaseConnection handle $ \conn ->
+loadArticleBySlug :: Environment -> Text -> Handler Persisted.Article
+loadArticleBySlug environment slug =
+  withDatabaseConnection environment $ \conn ->
     Handler $
     maybeToExceptT (notFound "Article") $
     MaybeT $ Database.findBySlug conn slug

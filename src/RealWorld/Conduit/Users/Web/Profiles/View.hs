@@ -4,11 +4,7 @@ module RealWorld.Conduit.Users.Web.Profiles.View
   , loadUserByUserName
   ) where
 
-import Control.Monad.Trans.Maybe (MaybeT(MaybeT), maybeToExceptT)
-import Data.Function (($), (.))
-import Data.Functor ((<$>))
-import Data.Text (Text)
-import RealWorld.Conduit.Handle (Handle(..))
+import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Users
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Profile (Profile)
@@ -26,12 +22,12 @@ type View =
   Capture "username" Username :>
   Get '[JSON] (Namespace "user" Profile)
 
-loadUserByUserName :: Handle -> Username -> Handler User
-loadUserByUserName handle username =
-  withDatabaseConnection handle $ \conn ->
+loadUserByUserName :: Environment -> Username -> Handler User
+loadUserByUserName environment username =
+  withDatabaseConnection environment $ \conn ->
     Handler $
     maybeToExceptT (notFound "User") $ MaybeT $ Users.findByUsername conn username
 
-handler :: Handle -> Username -> Handler (Namespace "user" Profile)
-handler handle username =
-  Namespace . Profile.fromUser <$> loadUserByUserName handle username
+handler :: Environment -> Username -> Handler (Namespace "user" Profile)
+handler environment username =
+  Namespace . Profile.fromUser <$> loadUserByUserName environment username

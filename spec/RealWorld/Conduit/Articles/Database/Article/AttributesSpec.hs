@@ -2,12 +2,6 @@ module RealWorld.Conduit.Articles.Database.Article.AttributesSpec
   ( spec
   ) where
 
-import Control.Monad.Trans.Except (runExceptT)
-import Data.Either (Either(Left, Right))
-import Data.Function (($))
-import Data.Functor ((<$>), void)
-import Data.Functor.Identity (Identity)
-import Data.Maybe (Maybe(Just, Nothing))
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Articles.Database (create)
 import RealWorld.Conduit.Articles.Database.Article.Attributes

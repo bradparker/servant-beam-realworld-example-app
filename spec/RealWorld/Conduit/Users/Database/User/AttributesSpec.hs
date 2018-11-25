@@ -2,12 +2,6 @@ module RealWorld.Conduit.Users.Database.User.AttributesSpec
   ( spec
   ) where
 
-import Control.Monad.Trans.Except (runExceptT)
-import Data.Either (Either(Left, Right))
-import Data.Function (($))
-import Data.Functor ((<$>), void)
-import Data.Functor.Identity (Identity)
-import Data.Maybe (Maybe(Nothing, Just))
 import RealWorld.Conduit.Spec.Database (withConnection)
 import RealWorld.Conduit.Users.Database (create)
 import RealWorld.Conduit.Users.Database.User.Attributes

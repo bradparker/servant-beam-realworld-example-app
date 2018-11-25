@@ -3,17 +3,9 @@ module RealWorld.Conduit.Articles.Web.Article
   , fromDecorated
   ) where
 
-import Control.Applicative ((<*>))
 import Data.Aeson (FromJSON(..), ToJSON(..))
-import Data.Bool (Bool)
-import Data.Function ((.))
-import Data.Functor ((<$>))
-import Data.Int (Int)
-import Data.Set (Set)
 import Data.Swagger (ToSchema)
-import Data.Text (Text)
 import Data.Time (UTCTime)
-import GHC.Generics (Generic)
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Database.Decorated (Decorated(..))
 import qualified RealWorld.Conduit.Articles.Database.Decorated as Decorated
