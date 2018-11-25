@@ -5,7 +5,8 @@
 , resource-pool, scrypt, servant, servant-auth, servant-auth-server
 , servant-auth-swagger, servant-server, servant-swagger
 , servant-swagger-ui, servant-swagger-ui-core, stdenv, swagger2
-, text, time, transformers, validation, wai, wai-extra, warp
+, text, time, transformers, validation, vector, wai, wai-extra
+, warp
 }:
 mkDerivation {
   pname = "realworld-conduit";
@@ -20,7 +21,7 @@ mkDerivation {
     scrypt servant servant-auth servant-auth-server
     servant-auth-swagger servant-server servant-swagger
     servant-swagger-ui servant-swagger-ui-core swagger2 text time
-    transformers validation wai wai-extra warp
+    transformers validation vector wai wai-extra warp
   ];
   libraryToolDepends = [ hpack ];
   executableHaskellDepends = [
@@ -30,7 +31,7 @@ mkDerivation {
     scrypt servant servant-auth servant-auth-server
     servant-auth-swagger servant-server servant-swagger
     servant-swagger-ui servant-swagger-ui-core swagger2 text time
-    transformers validation wai wai-extra warp
+    transformers validation vector wai wai-extra warp
   ];
   testHaskellDepends = [
     aeson base beam-core beam-postgres bytestring conduit containers
@@ -40,7 +41,7 @@ mkDerivation {
     servant-auth servant-auth-server servant-auth-swagger
     servant-server servant-swagger servant-swagger-ui
     servant-swagger-ui-core swagger2 text time transformers validation
-    wai wai-extra warp
+    vector wai wai-extra warp
   ];
   preConfigure = "hpack";
   description = "Exemplary fullstack Medium.com clone powered by Servant and Beam";

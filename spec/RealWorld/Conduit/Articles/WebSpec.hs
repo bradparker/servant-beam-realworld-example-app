@@ -9,13 +9,19 @@ import Control.Monad.Trans.Except (ExceptT(..), runExceptT)
 import Data.Aeson (FromJSON, eitherDecode, encode)
 import Data.ByteString.Lazy (ByteString)
 import Data.Either (Either(Right))
+import Data.Foldable (length, traverse_)
 import Data.Function (($), (.))
 import Data.Functor ((<$>), void)
+import Data.List (sort)
 import Data.Proxy (Proxy(Proxy))
 import Data.Semigroup ((<>))
 import qualified Data.Set as Set
 import Data.String (String)
+import Data.Text (Text)
+import qualified Data.Text as Text
 import Data.Text.Encoding (encodeUtf8)
+import Data.Traversable (for)
+import GHC.Int (Int)
 import Network.HTTP.Types
   ( hAuthorization
   , status200
@@ -48,6 +54,7 @@ import Servant ((:<|>)((:<|>)), serveWithContext)
 import Test.Hspec (Spec, around, context, describe, it, shouldBe)
 import Test.Hspec.Wai.Extended (WaiSession, delete', get', post', put')
 import Test.Hspec.Wai.JSON (json)
+import Text.Show (show)
 
 type ArticlesAndUsers = Articles :<|> Users
 
@@ -71,9 +78,9 @@ articleFromResponse = (unNamespace <$>) . decodeArticleNamespace . simpleBody
 articleNamespace :: a -> Namespace "article" a
 articleNamespace = Namespace
 
-create :: Account -> Attributes.Create -> WaiSession (Either String Article)
+create :: Account -> Attributes.Create -> ExceptT String WaiSession Article
 create account =
-  (articleFromResponse <$>) .
+  ExceptT . (articleFromResponse <$>) .
   post'
     "/api/articles"
     [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))] .
@@ -88,6 +95,32 @@ createParams =
     , Attributes.tagList = Set.empty
     }
 
+favorite :: Account -> Text -> ExceptT String WaiSession Article
+favorite account slug =
+  ExceptT $
+  articleFromResponse <$>
+  post'
+    ("/api/articles/" <> encodeUtf8 slug <> "/favorite")
+    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+    ""
+
+decodeArticlesNamespace ::
+     FromJSON a => ByteString -> Either String (Namespace "articles" a)
+decodeArticlesNamespace = eitherDecode
+
+articlesFromResponse :: SResponse -> Either String [Article]
+articlesFromResponse = (unNamespace <$>) . decodeArticlesNamespace . simpleBody
+
+createN ::
+     Int
+  -> Account
+  -> (Int -> Attributes.Create)
+  -> ExceptT String WaiSession [Article]
+createN num account f = for [1 .. num] $ \n -> create account (f n)
+
+defaultAccount :: ExceptT String WaiSession Account
+defaultAccount = ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+
 spec :: Spec
 spec =
   around (withApp app) $ do
@@ -96,8 +129,7 @@ spec =
         it "responds with 201 and a json encoded article response" $ do
           res <-
             runExceptT $ do
-              account <-
-                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              account <- defaultAccount
               lift $
                 post'
                   "/api/articles"
@@ -121,15 +153,14 @@ spec =
             Article.body <$>
               (articleFromResponse =<< res) `shouldBe` Right "The whole kit and kaboodle."
             Article.tagList <$>
-              (articleFromResponse =<< res) `shouldBe` Right ["cats", "dogs"]
+              (articleFromResponse =<< res) `shouldBe` Right (Set.fromList ["cats", "dogs"])
 
       context "when provided a valid body with invalid values" $
         it "responds with 422 and a json encoded error response" $ do
           res <-
             runExceptT $ do
-              account <-
-                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
-              void $ ExceptT $ create account createParams { Attributes.title = "Taken" }
+              account <- defaultAccount
+              void $ create account createParams { Attributes.title = "Taken" }
               lift $
                 post'
                   "/api/articles"
@@ -165,10 +196,8 @@ spec =
         it "responds with 200 and a json encoded article response" $ do
           res <-
             runExceptT $ do
-              account <-
-                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              account <- defaultAccount
               article <-
-                ExceptT $
                 create
                   account
                   Attributes
@@ -189,15 +218,14 @@ spec =
             Article.body <$>
               (articleFromResponse =<< res) `shouldBe` Right "Body."
             Article.tagList <$>
-              (articleFromResponse =<< res) `shouldBe` Right ["tag1", "tag2", "tag3"]
+              (articleFromResponse =<< res) `shouldBe` Right (Set.fromList ["tag1", "tag2", "tag3"])
 
     describe "PUT /api/articles/:slug" $ do
       context "when article doesn't exist" $
         it "responds with a 404" $ do
           res <-
             runExceptT $ do
-              account <-
-                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              account <- defaultAccount
               lift $
                 put'
                   "/api/articles/nah"
@@ -215,10 +243,8 @@ spec =
           it "responds with 200 and a json encoded article response" $ do
             res <-
               runExceptT $ do
-                account <-
-                  ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+                account <- defaultAccount
                 article <-
-                  ExceptT $
                   create account createParams {Attributes.title = "First title"}
                 lift $
                   put'
@@ -236,7 +262,7 @@ spec =
                 (articleFromResponse =<< res) `shouldBe` Right "updated-title"
               Article.title <$>
                 (articleFromResponse =<< res) `shouldBe` Right "Updated title"
-              Set.fromList . Article.tagList <$>
+              Article.tagList <$>
                 (articleFromResponse =<< res) `shouldBe`
                 Right (Set.fromList ["updated", "tags"])
 
@@ -244,12 +270,10 @@ spec =
           it "responds with 422 and a json encoded error response" $ do
             res <-
               runExceptT $ do
-                account <-
-                  ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+                account <- defaultAccount
                 article <-
-                  ExceptT $
                   create account createParams {Attributes.title = "Not taken"}
-                void $ ExceptT $ create account createParams { Attributes.title = "Taken" }
+                void $ create account createParams { Attributes.title = "Taken" }
                 lift $
                   put'
                     (encodeUtf8 ("/api/articles/" <> Article.slug article))
@@ -277,8 +301,7 @@ spec =
         it "responds with a 404" $ do
           res <-
             runExceptT $ do
-              account <-
-                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              account <- defaultAccount
               lift $
                 delete'
                   "/api/articles/nah"
@@ -291,11 +314,268 @@ spec =
         it "responds with 200 and a json encoded article response" $ do
           res <-
             runExceptT $ do
-              account <-
-                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
-              article <- ExceptT $ create account createParams
+              account <- defaultAccount
+              article <- create account createParams
               lift $
                 delete'
                   (encodeUtf8 ("/api/articles/" <> Article.slug article))
                   [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
           liftIO $ simpleStatus <$> res `shouldBe` Right status204
+
+    describe "GET /api/articles" $ do
+      context "without a `limit` param" $
+        it "responds with no more than 20 articles" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              void $ createN 25 account $ \n ->
+                createParams
+                  { Attributes.title = "Title " <> Text.pack (show n)
+                  }
+              lift $ get' "/api/articles/" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            length <$> articles `shouldBe` Right 20
+
+      context "with a `limit` param" $
+        it "responds with no more than that many articles" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              void $ createN 15 account $ \n ->
+                createParams
+                  { Attributes.title = "Title " <> Text.pack (show n)
+                  }
+              lift $ get' "/api/articles/?limit=10" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            length <$> articles `shouldBe` Right 10
+
+      context "without an `offset` param" $
+        it "responds with the first `limit` articles" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              void $ createN 8 account $ \n ->
+                createParams
+                  { Attributes.title = "Article " <> Text.pack (show n)
+                  }
+              lift $ get' "/api/articles/?limit=4" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            sort . (Article.title <$>) <$>
+              articles `shouldBe`
+              Right
+                [ "Article 1"
+                , "Article 2"
+                , "Article 3"
+                , "Article 4"
+                ]
+
+      context "with an `offset` param" $
+        it "responds with `limit` articles starting from `offset`" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              void $ createN 8 account $ \n ->
+                createParams
+                  { Attributes.title = "Article " <> Text.pack (show n)
+                  }
+              lift $ get' "/api/articles/?limit=4&offset=4" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            sort . (Article.title <$>) <$>
+              articles `shouldBe`
+              Right
+                [ "Article 5"
+                , "Article 6"
+                , "Article 7"
+                , "Article 8"
+                ]
+
+      context "without a `tag` param" $
+        it "responds with articles tagged with anything" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              void $ createN 5 account $ \n ->
+                createParams
+                  { Attributes.title = "Tagged with foo " <> Text.pack (show n)
+                  , Attributes.tagList = Set.fromList ["foo"]
+                  }
+              void $ createN 5 account $ \n ->
+                createParams
+                  { Attributes.title = "Tagged with foo and bar " <> Text.pack (show n)
+                  , Attributes.tagList = Set.fromList ["foo", "bar"]
+                  }
+              lift $ get' "/api/articles/" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            sort . (Article.title <$>) <$>
+              articles `shouldBe`
+              Right
+                [ "Tagged with foo 1"
+                , "Tagged with foo 2"
+                , "Tagged with foo 3"
+                , "Tagged with foo 4"
+                , "Tagged with foo 5"
+                , "Tagged with foo and bar 1"
+                , "Tagged with foo and bar 2"
+                , "Tagged with foo and bar 3"
+                , "Tagged with foo and bar 4"
+                , "Tagged with foo and bar 5"
+                ]
+
+      context "with a `tag` param" $
+        it "responds with articles tagged with at least that tag" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              void $ createN 5 account $ \n ->
+                createParams
+                  { Attributes.title = "Tagged with foo " <> Text.pack (show n)
+                  , Attributes.tagList = Set.fromList ["foo"]
+                  }
+              void $ createN 5 account $ \n ->
+                createParams
+                  { Attributes.title = "Tagged with foo and bar " <> Text.pack (show n)
+                  , Attributes.tagList = Set.fromList ["foo", "bar"]
+                  }
+              lift $ get' "/api/articles/?tag=bar" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            sort . (Article.title <$>) <$>
+              articles `shouldBe`
+              Right
+                [ "Tagged with foo and bar 1"
+                , "Tagged with foo and bar 2"
+                , "Tagged with foo and bar 3"
+                , "Tagged with foo and bar 4"
+                , "Tagged with foo and bar 5"
+                ]
+
+      context "without an `author` param" $
+        it "responds with articles by any author" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              author <-
+                ExceptT $ register $ Registrant "secret123" "author@email.com" "author"
+              void $ createN 5 account $ \n ->
+                createParams
+                  { Attributes.title = "By account " <> Text.pack (show n)
+                  }
+              void $ createN 5 author $ \n ->
+                createParams
+                  { Attributes.title = "By author " <> Text.pack (show n)
+                  }
+              lift $ get' "/api/articles/" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            sort . (Article.title <$>) <$>
+              articles `shouldBe`
+              Right
+                [ "By account 1"
+                , "By account 2"
+                , "By account 3"
+                , "By account 4"
+                , "By account 5"
+                , "By author 1"
+                , "By author 2"
+                , "By author 3"
+                , "By author 4"
+                , "By author 5"
+                ]
+
+      context "with an `author` param" $
+        it "responds with articles by that author" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              author <-
+                ExceptT $ register $ Registrant "secret123" "author@email.com" "author"
+              void $ createN 5 account $ \n ->
+                createParams
+                  { Attributes.title = "By account " <> Text.pack (show n)
+                  }
+              void $ createN 5 author $ \n ->
+                createParams
+                  { Attributes.title = "By author " <> Text.pack (show n)
+                  }
+              lift $ get' "/api/articles/?author=author" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            sort . (Article.title <$>) <$>
+              articles `shouldBe`
+              Right
+                [ "By author 1"
+                , "By author 2"
+                , "By author 3"
+                , "By author 4"
+                , "By author 5"
+                ]
+
+      context "without a `favorited` param" $
+        it "responds with articles by any author" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              author <-
+                ExceptT $ register $ Registrant "secret123" "author@email.com" "author"
+              byAccount <- createN 5 account $ \n ->
+                createParams
+                  { Attributes.title = "Favorited by author " <> Text.pack (show n)
+                  }
+              traverse_ (favorite author . Article.slug) byAccount
+              void $ createN 5 author $ \n ->
+                createParams
+                  { Attributes.title = "Favorited by account " <> Text.pack (show n)
+                  }
+              traverse_ (favorite account . Article.slug) byAccount
+              lift $ get' "/api/articles/" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            sort . (Article.title <$>) <$>
+              articles `shouldBe`
+              Right
+                [ "Favorited by account 1"
+                , "Favorited by account 2"
+                , "Favorited by account 3"
+                , "Favorited by account 4"
+                , "Favorited by account 5"
+                , "Favorited by author 1"
+                , "Favorited by author 2"
+                , "Favorited by author 3"
+                , "Favorited by author 4"
+                , "Favorited by author 5"
+                ]
+
+      context "with a `favorited` param" $
+        it "responds with articles by that author" $ do
+          res <-
+            runExceptT $ do
+              account <- defaultAccount
+              author <-
+                ExceptT $ register $ Registrant "secret123" "author@email.com" "author"
+              byAccount <- createN 5 account $ \n ->
+                createParams
+                  { Attributes.title = "Favorited by author " <> Text.pack (show n)
+                  }
+              traverse_ (favorite author . Article.slug) byAccount
+              void $ createN 5 author $ \n ->
+                createParams
+                  { Attributes.title = "Favorited by account " <> Text.pack (show n)
+                  }
+              traverse_ (favorite account . Article.slug) byAccount
+              lift $ get' "/api/articles/?favorited=author" []
+          liftIO $ do
+            let articles = articlesFromResponse =<< res
+            sort . (Article.title <$>) <$>
+              articles `shouldBe`
+              Right
+                [ "Favorited by author 1"
+                , "Favorited by author 2"
+                , "Favorited by author 3"
+                , "Favorited by author 4"
+                , "Favorited by author 5"
+                ]

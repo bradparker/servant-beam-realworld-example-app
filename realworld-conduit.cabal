@@ -4,7 +4,7 @@ cabal-version: >= 1.10
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 99db2d18bded96b94d641149b56d6e08b71ad02ae656ff318a3b7ea86b6c1a19
+-- hash: 9a6e82acda9303066898d5caa96d66a428d69012166ca8e3b9650b329b994d7a
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -27,8 +27,10 @@ library
       RealWorld.Conduit.Articles.Database.Favorite
       RealWorld.Conduit.Articles.Database.Queries
       RealWorld.Conduit.Articles.Web
+      RealWorld.Conduit.Articles.Web.All
       RealWorld.Conduit.Articles.Web.Article
       RealWorld.Conduit.Articles.Web.Article.Attributes
+      RealWorld.Conduit.Articles.Web.Articles
       RealWorld.Conduit.Articles.Web.Create
       RealWorld.Conduit.Articles.Web.Destroy
       RealWorld.Conduit.Articles.Web.Favorite
@@ -106,6 +108,7 @@ library
     , time
     , transformers
     , validation
+    , vector
     , wai
     , wai-extra
     , warp
@@ -151,6 +154,7 @@ executable realworld-conduit
     , time
     , transformers
     , validation
+    , vector
     , wai
     , wai-extra
     , warp
@@ -209,6 +213,7 @@ test-suite spec
     , time
     , transformers
     , validation
+    , vector
     , wai
     , wai-extra
     , warp

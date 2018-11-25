@@ -8,6 +8,7 @@ import Data.Int (Int)
 import Data.Ord (Ord)
 import Data.Semigroup (Semigroup(..))
 import Data.Text (Text)
+import Data.Set (Set)
 import RealWorld.Conduit.Articles.Database.Article (Article)
 import RealWorld.Conduit.Users.Database.User (User)
 import Text.Show (Show)
@@ -15,7 +16,7 @@ import Text.Show (Show)
 data Decorated = Decorated
   { article :: Article
   , author :: User
-  , tagList :: [Text]
+  , tagList :: Set Text
   , favoriteCount :: Int
   , favorited :: Bool
   } deriving (Show, Eq, Ord)

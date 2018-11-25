@@ -41,6 +41,7 @@ dependencies:
   - time
   - transformers
   - validation
+  - vector
   - wai
   - wai-extra
   - warp
@@ -77,8 +78,10 @@ library:
     - RealWorld.Conduit.Articles.Database.Favorite
     - RealWorld.Conduit.Articles.Database.Queries
     - RealWorld.Conduit.Articles.Web
+    - RealWorld.Conduit.Articles.Web.All
     - RealWorld.Conduit.Articles.Web.Article
     - RealWorld.Conduit.Articles.Web.Article.Attributes
+    - RealWorld.Conduit.Articles.Web.Articles
     - RealWorld.Conduit.Articles.Web.Create
     - RealWorld.Conduit.Articles.Web.Destroy
     - RealWorld.Conduit.Articles.Web.Favorite

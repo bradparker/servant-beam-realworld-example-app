@@ -4,26 +4,27 @@ module RealWorld.Conduit.Articles.Web.Article
   ) where
 
 import Control.Applicative ((<*>))
-import Data.Aeson (ToJSON(..), FromJSON(..))
+import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Bool (Bool)
 import Data.Function ((.))
 import Data.Functor ((<$>))
 import Data.Int (Int)
+import Data.Set (Set)
 import Data.Swagger (ToSchema)
 import Data.Text (Text)
 import Data.Time (UTCTime)
 import GHC.Generics (Generic)
-import RealWorld.Conduit.Articles.Database.Decorated (Decorated(..))
-import RealWorld.Conduit.Users.Web.Profile (Profile, fromUser)
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
+import RealWorld.Conduit.Articles.Database.Decorated (Decorated(..))
 import qualified RealWorld.Conduit.Articles.Database.Decorated as Decorated
+import RealWorld.Conduit.Users.Web.Profile (Profile, fromUser)
 
 data Article = Article
   { slug :: Text
   , title :: Text
   , description :: Text
   , body :: Text
-  , tagList :: [Text]
+  , tagList :: Set Text
   , createdAt :: UTCTime
   , updatedAt :: UTCTime
   , favorited :: Bool

@@ -17,6 +17,8 @@ import RealWorld.Conduit.Articles.Web.Update (Update)
 import qualified RealWorld.Conduit.Articles.Web.Update as Update
 import RealWorld.Conduit.Articles.Web.View (View)
 import qualified RealWorld.Conduit.Articles.Web.View as View
+import RealWorld.Conduit.Articles.Web.All (All)
+import qualified RealWorld.Conduit.Articles.Web.All as All
 import RealWorld.Conduit.Handle (Handle)
 import Servant ((:<|>)((:<|>)), Server)
 
@@ -26,7 +28,8 @@ type Articles =
   Update :<|>
   Destroy :<|>
   Favorite :<|>
-  Unfavorite
+  Unfavorite :<|>
+  All
 
 server :: Handle -> Server Articles
 server handle =
@@ -35,7 +38,8 @@ server handle =
   Update.handler handle :<|>
   Destroy.handler handle :<|>
   Favorite.handler handle :<|>
-  Unfavorite.handler handle
+  Unfavorite.handler handle :<|>
+  All.handler handle
 
 articles :: Proxy Articles
 articles = Proxy
