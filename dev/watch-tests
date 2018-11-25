@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ghcid \
-  --command 'cabal repl' \
-  --test=Main.main \
+  --command ghci \
+  --test "Main.main" \
   --restart *.cabal \
-  test:spec
+  "spec/Spec.hs"
