@@ -4,7 +4,7 @@ cabal-version: >= 1.10
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 2aa62f390bad9ed698461e3793d5cdb6d6bcd2f54fd7fff025b1ac351671ff1e
+-- hash: cc8168bcc103b99b94b80393b6c6103890442fb921bd150fe53843a7303ff303
 
 name:           realworld-conduit
 version:        0.1.0.0
@@ -35,6 +35,7 @@ library
       RealWorld.Conduit.Articles.Web.Create
       RealWorld.Conduit.Articles.Web.Destroy
       RealWorld.Conduit.Articles.Web.Favorite
+      RealWorld.Conduit.Articles.Web.Feed
       RealWorld.Conduit.Articles.Web.Unfavorite
       RealWorld.Conduit.Articles.Web.Update
       RealWorld.Conduit.Articles.Web.View

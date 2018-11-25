@@ -86,6 +86,7 @@ library:
     - RealWorld.Conduit.Articles.Web.Create
     - RealWorld.Conduit.Articles.Web.Destroy
     - RealWorld.Conduit.Articles.Web.Favorite
+    - RealWorld.Conduit.Articles.Web.Feed
     - RealWorld.Conduit.Articles.Web.Unfavorite
     - RealWorld.Conduit.Articles.Web.Update
     - RealWorld.Conduit.Articles.Web.View

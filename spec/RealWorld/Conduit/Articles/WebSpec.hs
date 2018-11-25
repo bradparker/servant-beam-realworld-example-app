@@ -88,6 +88,15 @@ favorite account slug =
     [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
     ""
 
+follow :: Account -> Text -> ExceptT String WaiSession ()
+follow account username =
+  void $
+  lift $
+  post'
+    ("/api/profiles/" <> encodeUtf8 username <> "/follow")
+    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+    ""
+
 decodeArticlesNamespace ::
      FromJSON a => ByteString -> Either String (Namespace "articles" a)
 decodeArticlesNamespace = eitherDecode
@@ -563,3 +572,34 @@ spec =
                 , "Favorited by author 4"
                 , "Favorited by author 5"
                 ]
+
+    describe "GET /api/articles/feed" $
+      it "responds with articles by authors followed by account" $ do
+        res <-
+          runExceptT $ do
+            account <- defaultAccount
+            author <-
+              ExceptT $
+              register $ Registrant "secret123" "author@email.com" "author"
+            void $ follow account "author"
+            void $
+              createN 5 account $ \n ->
+                createParams {Attributes.title = "By Account " <> show n}
+            void $
+              createN 5 author $ \n ->
+                createParams {Attributes.title = "By Author " <> show n}
+            lift $
+              get'
+                "/api/articles/feed"
+                [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+        liftIO $ do
+          let articles = articlesFromResponse =<< res
+          sort . (Article.title <$>) <$>
+            articles `shouldBe`
+            Right
+              [ "By Author 1"
+              , "By Author 2"
+              , "By Author 3"
+              , "By Author 4"
+              , "By Author 5"
+              ]
