@@ -4,9 +4,7 @@ module Main
 
 import Data.Aeson (ToJSON, encode)
 import Data.Default (def)
-import Data.Map (Map, singleton)
-import Data.String (String)
-import GHC.Generics (Generic)
+import Data.Map (singleton)
 import Network.Wai (Middleware)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.RequestLogger
@@ -18,7 +16,6 @@ import Network.Wai.Middleware.RequestLogger.JSON (formatAsJSON)
 import qualified RealWorld.Conduit.Environment as Environment
 import RealWorld.Conduit.Options (Options(port), getOptions)
 import RealWorld.Conduit.Web (app)
-import System.IO (IO)
 
 data Event a = Event
   { event :: String
