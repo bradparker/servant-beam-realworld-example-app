@@ -29,13 +29,6 @@ handler ::
 handler environment (Namespace params) =
   Namespace <$> register environment params
 
-data ErrorPayload e = ErrorPayload
-  { message :: Text
-  , errors :: e
-  } deriving (Generic)
-
-deriving instance ToJSON e => ToJSON (ErrorPayload e)
-
 data Registrant = Registrant
   { password :: Text
   , email :: Text
