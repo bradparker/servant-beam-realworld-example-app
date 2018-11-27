@@ -161,7 +161,7 @@ spec =
                   [json|{
                     article: {
                       title: "Taken",
-                      description: "Desc.",
+                      description: "",
                       body: "Body",
                       tagList: []
                     }
@@ -171,12 +171,10 @@ spec =
             simpleBody <$> res `shouldBe` Right
               [json|{
                 message: "Failed validation",
-                errors: [
-                  {
-                    tag: "TitleWouldProduceDuplicateSlug",
-                    contents: "taken"
-                  }
-                ]
+                errors: {
+                  title: ["Would produce duplicate slug: taken"],
+                  description: ["Required"]
+                }
               }|]
 
     describe "GET /api/articles/:slug" $ do
@@ -281,12 +279,9 @@ spec =
               simpleBody <$> res `shouldBe` Right
                 [json|{
                   message: "Failed validation",
-                  errors: [
-                    {
-                      tag: "TitleWouldProduceDuplicateSlug",
-                      contents: "taken"
-                    }
-                  ]
+                  errors: {
+                    title: ["Would produce duplicate slug: taken"]
+                  }
                 }|]
 
     describe "DELETE /api/articles/:slug" $ do

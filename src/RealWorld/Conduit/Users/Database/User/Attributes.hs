@@ -1,6 +1,5 @@
 module RealWorld.Conduit.Users.Database.User.Attributes
   ( Attributes(..)
-  , ValidationFailure(..)
   , forInsert
   , forUpdate
   ) where
@@ -11,6 +10,7 @@ import Crypto.Scrypt
   , encryptPassIO'
   )
 import Data.Aeson (ToJSON)
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import Data.Validation (Validation(Failure, Success), toEither)
 import Database.PostgreSQL.Simple (Connection)
@@ -27,6 +27,8 @@ data Attributes f = Attributes
   , image :: Attribute f (Maybe Text)
   }
 
+type Errors = Map Text [Text]
+
 data ValidationFailure
   = EmailTaken
   | UsernameTaken
@@ -41,34 +43,34 @@ encryptPassword :: Text -> IO Text
 encryptPassword password =
   decodeUtf8 . getEncryptedPass <$> encryptPassIO' (Pass (encodeUtf8 password))
 
-makePassword :: Text -> Compose IO (Validation [ValidationFailure]) Text
+makePassword :: Text -> Compose IO (Validation Errors) Text
 makePassword value
-  | Text.length value < 8 = Compose $ pure $ Failure [PasswordLessThan8Chars]
+  | Text.length value < 8 = Compose $ pure $ Failure (Map.singleton "password" ["Must be longer than 8 chars"])
   | otherwise = Compose $ Success <$> encryptPassword value
 
 insertEmail ::
      Connection
   -> Text
-  -> Compose IO (Validation [ValidationFailure]) Text
+  -> Compose IO (Validation Errors) Text
 insertEmail conn value =
   Compose $ do
     existing <- findByEmail conn value
     pure $
       case existing of
         Nothing -> Success value
-        Just _ -> Failure [EmailTaken]
+        Just _ -> Failure (Map.singleton "email" ["Taken"])
 
 insertUsername ::
      Connection
   -> Text
-  -> Compose IO (Validation [ValidationFailure]) Text
+  -> Compose IO (Validation Errors) Text
 insertUsername conn value =
   Compose $ do
     existing <- findByUsername conn value
     pure $
       case existing of
         Nothing -> Success value
-        Just _ -> Failure [UsernameTaken]
+        Just _ -> Failure (Map.singleton "username" ["Taken"])
 
 forInsert ::
      Connection
@@ -77,7 +79,7 @@ forInsert ::
   -> Text
   -> Text
   -> Maybe Text
-  -> ExceptT [ValidationFailure] IO (Attributes Identity)
+  -> ExceptT Errors IO (Attributes Identity)
 forInsert conn passwordVal emailVal usernameVal bioVal imageVal =
   ExceptT . (toEither <$>) . getCompose $
   Attributes
@@ -87,21 +89,21 @@ forInsert conn passwordVal emailVal usernameVal bioVal imageVal =
     <*> pure bioVal
     <*> pure imageVal
 
-updateEmail ::
+makeUpdateEmail ::
      Connection
   -> User
   -> Text
-  -> Compose IO (Validation [ValidationFailure]) Text
-updateEmail conn current value
+  -> Compose IO (Validation Errors) Text
+makeUpdateEmail conn current value
   | value == User.email current = pure value
   | otherwise = insertEmail conn value
 
-updateUsername ::
+makeUpdateUsername ::
      Connection
   -> User
   -> Text
-  -> Compose IO (Validation [ValidationFailure]) Text
-updateUsername conn current value
+  -> Compose IO (Validation Errors) Text
+makeUpdateUsername conn current value
   | value == User.username current = pure value
   | otherwise = insertUsername conn value
 
@@ -113,12 +115,12 @@ forUpdate ::
   -> Maybe Text
   -> Maybe Text
   -> Maybe (Maybe Text)
-  -> ExceptT [ValidationFailure] IO (Attributes Maybe)
+  -> ExceptT Errors IO (Attributes Maybe)
 forUpdate conn current passwordVal emailVal usernameVal bioVal imageVal =
   ExceptT . (toEither <$>) . getCompose $
   Attributes
     <$> traverse makePassword passwordVal
-    <*> traverse (updateEmail conn current) emailVal
-    <*> traverse (updateUsername conn current) usernameVal
+    <*> traverse (makeUpdateEmail conn current) emailVal
+    <*> traverse (makeUpdateUsername conn current) usernameVal
     <*> pure bioVal
     <*> pure imageVal

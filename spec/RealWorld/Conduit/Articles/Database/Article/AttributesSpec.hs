@@ -2,12 +2,11 @@ module RealWorld.Conduit.Articles.Database.Article.AttributesSpec
   ( spec
   ) where
 
+import qualified Data.Map as Map
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Articles.Database (create)
 import RealWorld.Conduit.Articles.Database.Article.Attributes
   ( Attributes(Attributes)
-  , ValidationFailure(BodyRequired, DescriptionRequired,
-                  TitleWouldProduceDuplicateSlug)
   )
 import qualified RealWorld.Conduit.Articles.Database.Article.Attributes as Attributes
 import RealWorld.Conduit.Spec.Database (withConnection)
@@ -66,15 +65,15 @@ spec =
             "Taken"
             "Description"
             "Body"
-        Attributes.title <$> attributes `shouldBe` Left [TitleWouldProduceDuplicateSlug "taken"]
+        Attributes.title <$> attributes `shouldBe` Left (Map.singleton "title" ["Would produce duplicate slug: taken"])
 
       it "returns a validation failure when description is absent" $ \conn -> do
         attributes <- runExceptT $ Attributes.forInsert conn "Title" "" "Body"
-        Attributes.title <$> attributes `shouldBe` Left [DescriptionRequired]
+        Attributes.title <$> attributes `shouldBe` Left (Map.singleton "description" ["Required"])
 
       it "returns a validation failure when body is absent" $ \conn -> do
         attributes <- runExceptT $ Attributes.forInsert conn "Title" "Description" ""
-        Attributes.title <$> attributes `shouldBe` Left [BodyRequired]
+        Attributes.title <$> attributes `shouldBe` Left (Map.singleton "body" ["Required"])
 
     describe "forUpdate" $ do
       it "returns an Attributes Maybe when valid" $ \conn -> do
@@ -109,18 +108,18 @@ spec =
             (Just "Taken")
             Nothing
             Nothing
-        Attributes.title <$> attributes `shouldBe` Left [TitleWouldProduceDuplicateSlug "taken"]
+        Attributes.title <$> attributes `shouldBe` Left (Map.singleton "title" ["Would produce duplicate slug: taken"])
 
       it "returns a validation failure when description is absent" $ \conn -> do
         user <- User.create conn userCreateParams
         article <- create conn (primaryKey user) createParams
         attributes <-
           runExceptT $ Attributes.forUpdate conn article Nothing (Just "") Nothing
-        Attributes.title <$> attributes `shouldBe` Left [DescriptionRequired]
+        Attributes.title <$> attributes `shouldBe` Left (Map.singleton "description" ["Required"])
 
       it "returns a validation failure when body is absent" $ \conn -> do
         user <- User.create conn userCreateParams
         article <- create conn (primaryKey user) createParams
         attributes <-
           runExceptT $ Attributes.forUpdate conn article Nothing Nothing (Just "")
-        Attributes.title <$> attributes `shouldBe` Left [BodyRequired]
+        Attributes.title <$> attributes `shouldBe` Left (Map.singleton "body" ["Required"])

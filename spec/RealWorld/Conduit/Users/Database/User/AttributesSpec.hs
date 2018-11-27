@@ -2,12 +2,10 @@ module RealWorld.Conduit.Users.Database.User.AttributesSpec
   ( spec
   ) where
 
+import qualified Data.Map as Map
 import RealWorld.Conduit.Spec.Database (withConnection)
 import RealWorld.Conduit.Users.Database (create)
-import RealWorld.Conduit.Users.Database.User.Attributes
-  ( Attributes(Attributes)
-  , ValidationFailure(EmailTaken, UsernameTaken)
-  )
+import RealWorld.Conduit.Users.Database.User.Attributes (Attributes(Attributes))
 import qualified RealWorld.Conduit.Users.Database.User.Attributes as Attributes
 import Test.Hspec (Spec, around, describe, it, shouldBe)
 
@@ -55,7 +53,7 @@ spec =
             "Taken"
             ""
             Nothing
-        Attributes.username <$> attributes `shouldBe` Left [UsernameTaken]
+        Attributes.username <$> attributes `shouldBe` Left (Map.singleton "username" ["Taken"])
 
       it "returns a validation failure when email is taken" $ \conn -> do
         void $
@@ -72,7 +70,7 @@ spec =
             "Not Taken"
             ""
             Nothing
-        Attributes.username <$> attributes `shouldBe` Left [EmailTaken]
+        Attributes.username <$> attributes `shouldBe` Left (Map.singleton "email" ["Taken"])
 
     describe "forUpdate" $ do
       it "returns an Attributes Maybe when valid" $ \conn -> do
@@ -109,7 +107,7 @@ spec =
             (Just "Taken")
             Nothing
             Nothing
-        Attributes.username <$> attributes `shouldBe` Left [UsernameTaken]
+        Attributes.username <$> attributes `shouldBe` Left (Map.singleton "username" ["Taken"])
 
       it "returns a validation failure when email is taken" $ \conn -> do
         user <- create conn createParams
@@ -128,4 +126,4 @@ spec =
             (Just "Not Taken")
             Nothing
             Nothing
-        Attributes.username <$> attributes `shouldBe` Left [EmailTaken]
+        Attributes.username <$> attributes `shouldBe` Left (Map.singleton "email" ["Taken"])

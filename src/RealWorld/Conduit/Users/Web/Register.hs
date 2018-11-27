@@ -1,21 +1,19 @@
 module RealWorld.Conduit.Users.Web.Register
   ( Register
   , handler
-  , Error(..)
-  , ValidationFailure(..)
   , Registrant(..)
   ) where
 
 import Control.Monad.Trans.Except (withExceptT)
-import Data.Aeson (FromJSON, ToJSON, encode)
+import Data.Aeson (FromJSON, ToJSON)
 import Data.Swagger (ToSchema)
 import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Database
-import RealWorld.Conduit.Users.Database.User.Attributes (ValidationFailure)
 import qualified RealWorld.Conduit.Users.Database.User.Attributes as Attributes
 import RealWorld.Conduit.Users.Web.Account (Account, fromUser)
+import RealWorld.Conduit.Web.Errors (failedValidation, internalServerError)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
-import Servant (Handler(Handler), ServantErr, err422, err500, errBody)
+import Servant (Handler(Handler))
 import Servant.API ((:>), JSON, PostCreated, ReqBody)
 
 type Register =
@@ -29,13 +27,7 @@ handler ::
   -> Namespace "user" Registrant
   -> Handler (Namespace "user" Account)
 handler environment (Namespace params) =
-  Handler $
-  withExceptT toServantError $
   Namespace <$> register environment params
-
-data Error
-  = FailedValidation [ValidationFailure]
-  | InternalServerError Text
 
 data ErrorPayload e = ErrorPayload
   { message :: Text
@@ -43,12 +35,6 @@ data ErrorPayload e = ErrorPayload
   } deriving (Generic)
 
 deriving instance ToJSON e => ToJSON (ErrorPayload e)
-
-toServantError :: Error -> ServantErr
-toServantError (FailedValidation e) =
-  err422 {errBody = encode (ErrorPayload "Failed validation" e)}
-toServantError (InternalServerError e) =
-  err500 {errBody = encode (ErrorPayload "Internal server error" e)}
 
 data Registrant = Registrant
   { password :: Text
@@ -63,11 +49,12 @@ deriving instance ToSchema Registrant
 register ::
      Environment
   -> Registrant
-  -> ExceptT Error IO Account
+  -> Handler Account
 register Environment {withDatabaseConnection, jwtSettings} registrant =
+  Handler $
   withDatabaseConnection $ \conn -> do
     attributes <-
-      withExceptT FailedValidation $
+      withExceptT failedValidation $
       Attributes.forInsert
         conn
         (password registrant)
@@ -76,4 +63,4 @@ register Environment {withDatabaseConnection, jwtSettings} registrant =
         ""
         Nothing
     user <- lift $ Database.create conn attributes
-    withExceptT (InternalServerError . show) $ fromUser jwtSettings user
+    withExceptT (internalServerError . show) $ fromUser jwtSettings user

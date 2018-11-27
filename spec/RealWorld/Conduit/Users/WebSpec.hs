@@ -95,10 +95,10 @@ spec =
             simpleBody res `shouldBe`
               [json|{
                 message: "Failed validation",
-                errors: [
-                  "EmailTaken",
-                  "UsernameTaken"
-                ]
+                errors: {
+                  email: ["Taken"],
+                  username: ["Taken"]
+                }
               }|]
 
       context "when provided an invalid body" $
@@ -243,9 +243,9 @@ spec =
               Right
                 [json|{
                   message: "Failed validation",
-                  errors: [
-                    "EmailTaken"
-                  ]
+                  errors: {
+                    email: ["Taken"]
+                  }
                 }|]
 
     describe "GET /api/profiles/:username" $ do

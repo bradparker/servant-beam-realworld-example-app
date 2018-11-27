@@ -1,12 +1,11 @@
 module RealWorld.Conduit.Articles.Database.Article.Attributes
   ( Attributes(..)
-  , ValidationFailure(..)
   , forInsert
   , forUpdate
   ) where
 
-import Data.Aeson (ToJSON)
 import Data.Char (isAlphaNum, isSpace)
+import qualified Data.Map as Map
 import qualified Data.Text as Text
 import Data.Validation (Validation(Failure, Success), toEither)
 import Database.PostgreSQL.Simple (Connection)
@@ -22,16 +21,7 @@ data Attributes f = Attributes
   , body :: Attribute f Text
   }
 
-data ValidationFailure
-  = TitleWouldProduceDuplicateSlug Text
-  | TitleRequired
-  | DescriptionRequired
-  | BodyRequired
-
-deriving instance Generic ValidationFailure
-deriving instance Show ValidationFailure
-deriving instance Eq ValidationFailure
-deriving instance ToJSON ValidationFailure
+type Errors = Map Text [Text]
 
 generateSlug :: Text -> Text
 generateSlug =
@@ -41,38 +31,38 @@ generateSlug =
 insertSlug ::
      Connection
   -> Text
-  -> Compose IO (Validation [ValidationFailure]) Text
+  -> Compose IO (Validation Errors) Text
 insertSlug conn title =
   Compose $ do
     existing <- findBySlug conn value
     pure $
       case existing of
         Nothing -> Success value
-        Just _ -> Failure [TitleWouldProduceDuplicateSlug value]
+        Just _ -> Failure (Map.singleton "title" ["Would produce duplicate slug: " <> value])
   where
     value = generateSlug title
 
-require :: ValidationFailure -> Text -> Validation [ValidationFailure] Text
-require err value =
+require :: Text -> Text -> Validation Errors Text
+require attr value =
   if Text.null value
-    then Failure [err]
+    then Failure (Map.singleton attr ["Required"])
     else Success value
 
-makeTitle :: Text -> Validation [ValidationFailure] Text
-makeTitle = require TitleRequired
+makeTitle :: Text -> Validation Errors Text
+makeTitle = require "title"
 
-makeDescription :: Text -> Validation [ValidationFailure] Text
-makeDescription = require DescriptionRequired
+makeDescription :: Text -> Validation Errors Text
+makeDescription = require "description"
 
-makeBody :: Text -> Validation [ValidationFailure] Text
-makeBody = require BodyRequired
+makeBody :: Text -> Validation Errors Text
+makeBody = require "body"
 
 forInsert ::
      Connection
   -> Text
   -> Text
   -> Text
-  -> ExceptT [ValidationFailure] IO (Attributes Identity)
+  -> ExceptT Errors IO (Attributes Identity)
 forInsert conn title description body =
   ExceptT . (toEither <$>) . getCompose $
   Attributes
@@ -81,12 +71,12 @@ forInsert conn title description body =
     <*> Compose (pure (makeDescription description))
     <*> Compose (pure (makeBody body))
 
-updateSlug ::
+makeUpdateSlug ::
      Connection
   -> Article
   -> Text
-  -> Compose IO (Validation [ValidationFailure]) Text
-updateSlug conn current title
+  -> Compose IO (Validation Errors) Text
+makeUpdateSlug conn current title
   | value == Article.slug current = pure value
   | otherwise = insertSlug conn title
   where
@@ -98,11 +88,11 @@ forUpdate ::
   -> Maybe Text
   -> Maybe Text
   -> Maybe Text
-  -> ExceptT [ValidationFailure] IO (Attributes Maybe)
+  -> ExceptT Errors IO (Attributes Maybe)
 forUpdate conn current title description body =
   ExceptT . (toEither <$>) . getCompose $
   Attributes
-    <$> traverse (updateSlug conn current) title
+    <$> traverse (makeUpdateSlug conn current) title
     <*> traverse (Compose . pure . makeTitle) title
     <*> traverse (Compose . pure . makeDescription) description
     <*> traverse (Compose . pure . makeBody) body
