@@ -31,26 +31,26 @@ import Servant.API
 import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 
-newtype Attributes = Attributes { body :: Text }
+newtype CommentAttributes = CommentAttributes { body :: Text }
 
-deriving instance Generic Attributes
-deriving instance FromJSON Attributes
-deriving instance ToJSON Attributes
-deriving instance ToSchema Attributes
+deriving instance Generic CommentAttributes
+deriving instance FromJSON CommentAttributes
+deriving instance ToJSON CommentAttributes
+deriving instance ToSchema CommentAttributes
 
 type Create =
   "api" :>
   "articles" :>
   Capture "slug" Text :>
   "comments" :>
-  ReqBody '[JSON] (Namespace "comment" Attributes) :>
+  ReqBody '[JSON] (Namespace "comment" CommentAttributes) :>
   Auth '[JWT] Claim :>
   PostCreated '[JSON] (Namespace "comment" Comment)
 
 create ::
      Environment
   -> Text
-  -> Namespace "comment" Attributes
+  -> Namespace "comment" CommentAttributes
   -> AuthResult Claim
   -> Handler (Namespace "comment" Comment)
 create environment slug (Namespace params) authResult = do
