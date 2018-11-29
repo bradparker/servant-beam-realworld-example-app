@@ -91,6 +91,10 @@ library:
     - RealWorld.Conduit.Articles.Web.Update
     - RealWorld.Conduit.Articles.Web.View
     - RealWorld.Conduit.Attribute
+    - RealWorld.Conduit.Comments.Database
+    - RealWorld.Conduit.Comments.Database.Comment
+    - RealWorld.Conduit.Comments.Web
+    - RealWorld.Conduit.Comments.Web.Comment
     - RealWorld.Conduit.Database
     - RealWorld.Conduit.Environment
     - RealWorld.Conduit.Options

@@ -47,6 +47,8 @@ import RealWorld.Conduit.Articles.Database.Article (ArticleT)
 import qualified RealWorld.Conduit.Articles.Database.Article as Article
 import RealWorld.Conduit.Articles.Database.ArticleTag (ArticleTagT)
 import RealWorld.Conduit.Articles.Database.Favorite (FavoriteT)
+import RealWorld.Conduit.Comments.Database.Comment (CommentT)
+import qualified RealWorld.Conduit.Comments.Database.Comment as Comment
 import RealWorld.Conduit.Tags.Database.Tag (TagT)
 import RealWorld.Conduit.Users.Database.Follow (FollowT)
 import RealWorld.Conduit.Users.Database.User (UserT)
@@ -54,6 +56,7 @@ import RealWorld.Conduit.Users.Database.User (UserT)
 data ConduitDb f = ConduitDb
   { conduitArticleTags :: f (TableEntity ArticleTagT)
   , conduitArticles :: f (TableEntity ArticleT)
+  , conduitComments :: f (TableEntity CommentT)
   , conduitFavorites :: f (TableEntity FavoriteT)
   , conduitFollows :: f (TableEntity FollowT)
   , conduitTags :: f (TableEntity TagT)
@@ -71,6 +74,12 @@ conduitDb =
         tableModification
           { Article.createdAt = fieldNamed "created_at"
           , Article.updatedAt = fieldNamed "updated_at"
+          }
+    , conduitComments =
+        modifyTable id $
+        tableModification
+          { Comment.createdAt = fieldNamed "created_at"
+          , Comment.updatedAt = fieldNamed "updated_at"
           }
     }
 
