@@ -5,8 +5,8 @@
 BEGIN;
 
 CREATE TABLE IF NOT EXISTS favorites (
-  user__id INT REFERENCES users(id),
-  article__id INT REFERENCES articles(id)
+  user__id INT REFERENCES users(id) ON DELETE CASCADE,
+  article__id INT REFERENCES articles(id) ON DELETE CASCADE
 );
 
 COMMIT;

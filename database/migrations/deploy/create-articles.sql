@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS articles (
   slug TEXT UNIQUE NOT NULL,
   title TEXT NOT NULL,
   description TEXT NOT NULL,
-  author__id INT REFERENCES users(id),
+  author__id INT REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );

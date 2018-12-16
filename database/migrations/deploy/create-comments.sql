@@ -7,8 +7,8 @@ BEGIN;
 CREATE TABLE IF NOT EXISTS comments (
   id SERIAL PRIMARY KEY,
   body TEXT NOT NULL,
-  author__id INT REFERENCES users(id),
-  article__id INT REFERENCES articles(id),
+  author__id INT REFERENCES users(id) ON DELETE CASCADE,
+  article__id INT REFERENCES articles(id) ON DELETE CASCADE,
   created_at TIMESTAMP WITH TIME ZONE NOT NULL,
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
