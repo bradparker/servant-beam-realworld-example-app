@@ -12,6 +12,36 @@ We've gone to great lengths to adhere to the **Haskell** community styleguides &
 
 For more information on how to this works with other frontends/backends, head over to the [RealWorld](https://github.com/gothinkster/realworld) repo.
 
+# Status
+
+With the caveat that the Authorization header format is _slightly_ different, this is done:
+
+```
+┌─────────────────────────┬──────────┬──────────┐
+│                         │ executed │   failed │
+├─────────────────────────┼──────────┼──────────┤
+│              iterations │        1 │        0 │
+├─────────────────────────┼──────────┼──────────┤
+│                requests │       31 │        0 │
+├─────────────────────────┼──────────┼──────────┤
+│            test-scripts │       46 │        0 │
+├─────────────────────────┼──────────┼──────────┤
+│      prerequest-scripts │       17 │        0 │
+├─────────────────────────┼──────────┼──────────┤
+│              assertions │      280 │        0 │
+├─────────────────────────┴──────────┴──────────┤
+│ total run duration: 18s                       │
+├───────────────────────────────────────────────┤
+│ total data received: 5.77KB (approx)          │
+├───────────────────────────────────────────────┤
+│ average response time: 25ms                   │
+└───────────────────────────────────────────────┘
+```
+
+## TODO
+
+* I'm not thrilled by that average response time, this is over localhost ... working with _quite_ empty tables.
+
 # Getting started
 
 1. Use Nix to get all the Haskell package and application dependencies you need.
