@@ -100,9 +100,11 @@ library:
     - RealWorld.Conduit.Options
     - RealWorld.Conduit.Tags.Database
     - RealWorld.Conduit.Tags.Database.Tag
+    - RealWorld.Conduit.Tags.Web
     - RealWorld.Conduit.Users.Database
     - RealWorld.Conduit.Users.Database.Commands
     - RealWorld.Conduit.Users.Database.Credentials
+    - RealWorld.Conduit.Users.Database.Decorated
     - RealWorld.Conduit.Users.Database.Follow
     - RealWorld.Conduit.Users.Database.Queries
     - RealWorld.Conduit.Users.Database.User

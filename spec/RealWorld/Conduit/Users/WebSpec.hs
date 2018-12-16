@@ -44,8 +44,11 @@ userFromResponse = (unNamespace <$>) . decodeUserNamespace . simpleBody
 accountFromResponse :: SResponse -> Either String Account
 accountFromResponse = userFromResponse
 
+decodeProfileNamespace :: FromJSON a => ByteString -> Either String (Namespace "profile" a)
+decodeProfileNamespace = eitherDecode
+
 profileFromResponse :: SResponse -> Either String Profile
-profileFromResponse = userFromResponse
+profileFromResponse = (unNamespace <$>) . decodeProfileNamespace . simpleBody
 
 userNamespace :: a -> Namespace "user" a
 userNamespace = Namespace

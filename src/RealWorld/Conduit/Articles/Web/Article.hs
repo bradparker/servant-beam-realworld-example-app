@@ -9,7 +9,7 @@ import Data.Time (UTCTime)
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Database.Decorated (Decorated(..))
 import qualified RealWorld.Conduit.Articles.Database.Decorated as Decorated
-import RealWorld.Conduit.Users.Web.Profile (Profile, fromUser)
+import RealWorld.Conduit.Users.Web.Profile (Profile, fromDecoratedUser)
 
 data Article = Article
   { slug :: Text
@@ -41,4 +41,4 @@ fromDecorated =
     <*> Persisted.updatedAt . Decorated.article
     <*> Decorated.favorited
     <*> Decorated.favoriteCount
-    <*> fromUser . Decorated.author
+    <*> fromDecoratedUser . Decorated.author

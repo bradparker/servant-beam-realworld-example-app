@@ -6,6 +6,7 @@ module RealWorld.Conduit.Users.Web.Profiles.Follow
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Users
+import RealWorld.Conduit.Users.Database.Decorated (Decorated(Decorated))
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Users.Web.Profile (Profile)
@@ -26,7 +27,7 @@ type Follow =
   Capture "username" Username :>
   "follow" :>
   Auth '[JWT] Claim :>
-  Post '[JSON] (Namespace "user" Profile)
+  Post '[JSON] (Namespace "profile" Profile)
 
 createFollow :: Environment -> User -> User -> Handler ()
 createFollow environment follower followee =
@@ -38,8 +39,9 @@ handler ::
      Environment
   -> Username
   -> AuthResult Claim
-  -> Handler (Namespace "user" Profile)
+  -> Handler (Namespace "profile" Profile)
 handler environment username authresult = do
   user <- loadAuthorizedUser environment authresult
   profile <- loadUserByUserName environment username
-  Namespace (Profile.fromUser profile) <$ createFollow environment user profile
+  Namespace (Profile.fromDecoratedUser (Decorated profile True)) <$
+    createFollow environment user profile

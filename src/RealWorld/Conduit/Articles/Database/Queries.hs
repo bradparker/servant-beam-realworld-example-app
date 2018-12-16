@@ -9,7 +9,7 @@ module RealWorld.Conduit.Articles.Database.Queries
   , findByTitle
   ) where
 
-import Control.Lens (_1, _2, _3, _4, _5, view)
+import Control.Lens (_1, _2, _3, _4, _5, _6, view)
 import qualified Data.Set as Set
 import Data.Vector (Vector)
 import qualified Data.Vector as Vector
@@ -58,6 +58,9 @@ import RealWorld.Conduit.Database (ConduitDb(..), conduitDb, findBy)
 import RealWorld.Conduit.Tags.Database.Tag (TagT(..))
 import qualified RealWorld.Conduit.Tags.Database.Tag as Tag
 import RealWorld.Conduit.Users.Database (followersAndFollowees)
+import qualified RealWorld.Conduit.Users.Database.Decorated as User
+import qualified RealWorld.Conduit.Users.Database.Follow as Follow
+import qualified RealWorld.Conduit.Users.Database.Queries as Users
 import RealWorld.Conduit.Users.Database.User
   ( PrimaryKey(unUserId)
   , User
@@ -92,14 +95,16 @@ findDecorated conn currentUser scope =
     (runSelectReturningList $
      select $
      aggregate_
-       (\(article, author, tag, fav, currentUserFavorited) ->
+       (\(article, author, tag, fav, currentUserFollowing, currentUserFavorited) ->
           ( group_ article
           , group_ author
           , pgArrayAgg (Tag.name tag)
           , count_ (unUserId (Favorite.user fav))
+          , pgBoolOr currentUserFollowing
           , pgBoolOr currentUserFavorited)) $ do
        article <- scope
        author <- authors article
+       follow <- Users.follows author
        tag <- tags article
        fav <- favorites article
        pure
@@ -109,18 +114,22 @@ findDecorated conn currentUser scope =
          , fav
          , maybe
              (val_ False)
+             ((Follow.follower follow ==.) . just_ . val_ . primaryKey)
+             currentUser
+         , maybe
+             (val_ False)
              ((Favorite.user fav ==.) . just_ . val_ . primaryKey)
              currentUser))
 
 rowToDecorated ::
-     (Article, User, Vector (Maybe Text), Int, Maybe Bool) -> Decorated
+     (Article, User, Vector (Maybe Text), Int, Maybe Bool, Maybe Bool) -> Decorated
 rowToDecorated =
   Decorated
     <$> view _1
-    <*> view _2
+    <*> (User.Decorated <$> view _2 <*> fromMaybe False . view _5)
     <*> Set.fromList . Vector.toList . Vector.mapMaybe id . view _3
     <*> view _4
-    <*> fromMaybe False . view _5
+    <*> fromMaybe False . view _6
 
 type QueryExpression s = QExpr PgExpressionSyntax s
 

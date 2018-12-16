@@ -3,11 +3,11 @@ module RealWorld.Conduit.Articles.Database.Decorated
   ) where
 
 import RealWorld.Conduit.Articles.Database.Article (Article)
-import RealWorld.Conduit.Users.Database.User (User)
+import qualified RealWorld.Conduit.Users.Database.Decorated as User
 
 data Decorated = Decorated
   { article :: Article
-  , author :: User
+  , author :: User.Decorated
   , tagList :: Set Text
   , favoriteCount :: Int
   , favorited :: Bool

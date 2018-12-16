@@ -6,6 +6,7 @@ module RealWorld.Conduit.Users.Web.Profiles.Unfollow
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Users
+import RealWorld.Conduit.Users.Database.Decorated (Decorated(Decorated))
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Users.Web.Profile (Profile)
@@ -26,7 +27,7 @@ type Unfollow =
   Capture "username" Username :>
   "follow" :>
   Auth '[JWT] Claim :>
-  Delete '[JSON] (Namespace "user" Profile)
+  Delete '[JSON] (Namespace "profile" Profile)
 
 deleteFollow :: Environment -> User -> User -> Handler ()
 deleteFollow environment follower followee =
@@ -38,8 +39,9 @@ handler ::
      Environment
   -> Username
   -> AuthResult Claim
-  -> Handler (Namespace "user" Profile)
+  -> Handler (Namespace "profile" Profile)
 handler environment username authresult = do
   user <- loadAuthorizedUser environment authresult
   profile <- loadUserByUserName environment username
-  Namespace (Profile.fromUser profile) <$ deleteFollow environment user profile
+  Namespace (Profile.fromDecoratedUser (Decorated profile False)) <$
+    deleteFollow environment user profile

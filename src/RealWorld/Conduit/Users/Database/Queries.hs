@@ -4,24 +4,50 @@ module RealWorld.Conduit.Users.Database.Queries
   , findByUsername
   , findByCredentials
   , followersAndFollowees
+  , follows
+  , following
   ) where
 
-import Prelude hiding (find)
 import Crypto.Scrypt (EncryptedPass(EncryptedPass), Pass(Pass), verifyPass')
-import Database.Beam (Q, QExpr, all_, manyToMany_)
+import qualified Data.Foldable as Foldable
+import Database.Beam
+  ( Nullable
+  , Q
+  , QExpr
+  , (&&.)
+  , (==.)
+  , all_
+  , filter_
+  , leftJoin_
+  , manyToMany_
+  , primaryKey
+  , references_
+  , runSelectReturningList
+  , select
+  , val_
+  )
+import Database.Beam.Postgres (runBeamPostgres)
 import Database.Beam.Postgres.Syntax (PgExpressionSyntax, PgSelectSyntax)
 import Database.PostgreSQL.Simple (Connection)
-import RealWorld.Conduit.Database (ConduitDb(conduitUsers, conduitFollows), conduitDb, findBy)
+import Prelude hiding (find)
+import RealWorld.Conduit.Database
+  ( ConduitDb(conduitFollows, conduitUsers)
+  , conduitDb
+  , findBy
+  )
 import RealWorld.Conduit.Users.Database.Credentials (Credentials)
 import qualified RealWorld.Conduit.Users.Database.Credentials as Credentials
+import RealWorld.Conduit.Users.Database.Follow (FollowT)
 import qualified RealWorld.Conduit.Users.Database.Follow as Follow
 import qualified RealWorld.Conduit.Users.Database.User as User
 import RealWorld.Conduit.Users.Database.User
   ( PrimaryKey(unUserId)
-  , UserId
   , User
+  , UserId
   , UserT
   )
+
+type QueryExpression s = QExpr PgExpressionSyntax s
 
 find :: Connection -> UserId -> IO (Maybe User)
 find conn = findBy conn (all_ (conduitUsers conduitDb)) User.id . unUserId
@@ -53,3 +79,23 @@ followersAndFollowees =
     Follow.followee
     (all_ (conduitUsers conduitDb))
     (all_ (conduitUsers conduitDb))
+
+follows ::
+  UserT (QueryExpression s)
+  -> Q PgSelectSyntax ConduitDb s (FollowT (Nullable (QueryExpression s)))
+follows author =
+  leftJoin_
+    (all_ (conduitFollows conduitDb))
+    ((`references_` author) . Follow.followee)
+
+following :: Connection -> UserId -> UserId -> IO Bool
+following conn a b =
+  not . Foldable.null <$>
+  runBeamPostgres
+    conn
+    (runSelectReturningList $
+     select $
+     filter_
+       (\(follower, followee) ->
+          primaryKey follower ==. val_ a &&. primaryKey followee ==. val_ b)
+       followersAndFollowees)
