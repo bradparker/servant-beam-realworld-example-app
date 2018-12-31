@@ -6,10 +6,10 @@ import Database.Beam (primaryKey)
 import RealWorld.Conduit.Articles.Database
   ( create
   , findBySlug
-  , findByTitle
   , update
   )
-import qualified RealWorld.Conduit.Articles.Database.Article as Article
+import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
+import qualified RealWorld.Conduit.Articles.Article as Article
 import RealWorld.Conduit.Articles.Database.Article.Attributes
   ( Attributes(Attributes)
   )
@@ -36,6 +36,7 @@ createParams =
     , Attributes.title = "Title"
     , Attributes.description = "Description."
     , Attributes.body = "Body"
+    , Attributes.tagList = mempty
     }
 
 spec :: Spec
@@ -43,8 +44,8 @@ spec =
   around withConnection $ do
     describe "create" $
       it "creates a Article with the supplied params" $ \conn -> do
-        user <- User.create conn userCreateParams
-        article <- create conn (primaryKey user) createParams
+        user <- liftIO $ User.create conn userCreateParams
+        Right article <- runExceptT $ runReaderT (create (primaryKey user) createParams) conn
         Article.slug article `shouldBe` "slug"
         Article.title article `shouldBe` "Title"
         Article.description article `shouldBe` "Description."
@@ -52,19 +53,22 @@ spec =
 
     describe "update" $
       it "updates a article specified by articlename with new attributes" $ \conn -> do
-        user <- User.create conn userCreateParams
-        article <- create conn (primaryKey user) createParams
-        updated <-
+        user <- liftIO $ User.create conn userCreateParams
+        Right article <-
+          runExceptT $ usingReaderT conn $ create (primaryKey user) createParams
+        Right updated <-
+          runExceptT $
+          usingReaderT conn $
           update
-            conn
-            article
+            (primaryKey user)
+            (Article.slug article)
             Attributes
               { Attributes.slug = Nothing
               , Attributes.title = Nothing
               , Attributes.description = Nothing
               , Attributes.body = Just "Now with a bigger body"
+              , Attributes.tagList = mempty
               }
-        primaryKey article `shouldBe` primaryKey updated
         Article.title updated `shouldBe` Article.title article
         Article.description updated `shouldBe` Article.description article
         Article.body updated `shouldBe` "Now with a bigger body"
@@ -72,17 +76,8 @@ spec =
     describe "findBySlug" $
       context "when the article exists" $
         it "returns (Just matching)" $ \conn -> do
-          user <- User.create conn userCreateParams
-          article <- create conn (primaryKey user) createParams
+          user <- liftIO $ User.create conn userCreateParams
+          Right article <- runExceptT $ usingReaderT conn $ create(primaryKey user) createParams
           found <- findBySlug conn "slug"
-          primaryKey <$> found `shouldBe` Just (primaryKey article)
-          Article.title <$> found `shouldBe` Just "Title"
-
-    describe "findByTitle" $
-      context "when the article exists" $
-        it "returns (Just matching)" $ \conn -> do
-          user <- User.create conn userCreateParams
-          article <- create conn (primaryKey user) createParams
-          found <- findByTitle conn "Title"
-          primaryKey <$> found `shouldBe` Just (primaryKey article)
-          Article.slug <$> found `shouldBe` Just "slug"
+          Persisted.slug <$> found `shouldBe` Just (Article.slug article)
+          Persisted.title <$> found `shouldBe` Just "Title"

@@ -2,7 +2,7 @@ module RealWorld.Conduit.Articles.Web.Articles
   ( Articles(..)
   ) where
 
-import RealWorld.Conduit.Articles.Web.Article (Article)
+import RealWorld.Conduit.Articles.Article (Article)
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Swagger (ToSchema)
 

@@ -4,11 +4,11 @@ module RealWorld.Conduit.Articles.Web.Favorite
   ) where
 
 import Database.Beam (primaryKey)
+import qualified RealWorld.Conduit.Articles.Article as Article
+import RealWorld.Conduit.Articles.Article (Article)
 import qualified RealWorld.Conduit.Articles.Database as Database
-import qualified RealWorld.Conduit.Articles.Database.Article as Database
-import RealWorld.Conduit.Articles.Web.Article (Article)
-import RealWorld.Conduit.Articles.Web.Create (decorateArticle)
-import RealWorld.Conduit.Articles.Web.View (loadArticleBySlug)
+import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
+import RealWorld.Conduit.Articles.Web.View (loadArticle)
 import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
@@ -30,12 +30,13 @@ type Favorite =
 handler :: Environment -> AuthResult Claim -> Text -> Handler (Namespace "article" Article)
 handler environment authResult slug = do
   user <- loadAuthorizedUser environment authResult
-  article <- loadArticleBySlug environment slug
+  article <- loadArticle environment (Just (primaryKey user)) slug
   favoriteArticle environment user article
-  Namespace <$> decorateArticle environment (Just user) article
+  pure $ Namespace article
 
-favoriteArticle :: Environment -> User -> Database.Article -> Handler ()
+favoriteArticle :: Environment -> User -> Article -> Handler ()
 favoriteArticle environment user article =
   withDatabaseConnection environment $ \conn ->
-    liftIO $
-    void $ Database.favorite conn (primaryKey article) (primaryKey user)
+    void $
+    usingReaderT conn $
+    Database.favorite (Persisted.ArticleId (Article.id article)) (primaryKey user)

@@ -1,35 +1,88 @@
-cabal-version: >= 1.10
+cabal-version: 2.2
+name:          realworld-conduit
+version:       0.1.0.0
+synopsis:      Exemplary fullstack Medium.com clone powered by Servant and Beam
+description:   The http://realworld.io specification implemented using Servant for the web application layer and Beam for persistence.
+author:        Brad Parker
+maintainer:    hi@bradparker.com
+license:       BSD-3-Clause
+license-file:  LICENSE
+build-type:    Simple
 
--- This file has been generated from package.yaml by hpack version 0.29.7.
---
--- see: https://github.com/sol/hpack
---
--- hash: f0b73cda2c5ea17b9b9b1d593930519404340216ed6c7df45c025249e62c6781
+common ghc
+  default-extensions:
+    DataKinds
+    DeriveAnyClass
+    DeriveGeneric
+    DuplicateRecordFields
+    FlexibleContexts
+    FlexibleInstances
+    KindSignatures
+    MultiParamTypeClasses
+    NamedFieldPuns
+    OverloadedStrings
+    PartialTypeSignatures
+    ScopedTypeVariables
+    StandaloneDeriving
+    TypeFamilies
+    TypeOperators
+    TypeSynonymInstances
+  ghc-options: -Wall
+  default-language: Haskell2010
 
-name:           realworld-conduit
-version:        0.1.0.0
-synopsis:       Exemplary fullstack Medium.com clone powered by Servant and Beam
-description:    The http://realworld.io specification implemented using Servant for the web application layer and Beam for persistence.
-author:         Brad Parker
-maintainer:     hi@bradparker.com
-license:        BSD3
-license-file:   LICENSE
-build-type:     Simple
+common deps
+  build-depends:
+      aeson
+    , base-noprelude >=4.10 && <4.12
+    , beam-core
+    , beam-postgres
+    , bytestring
+    , conduit
+    , containers
+    , data-default
+    , http-types
+    , insert-ordered-containers
+    , jose
+    , lens
+    , monad-control
+    , mtl
+    , optparse-applicative
+    , postgresql-simple
+    , relude
+    , resource-pool
+    , scrypt
+    , servant
+    , servant-auth
+    , servant-auth-server
+    , servant-auth-swagger
+    , servant-server
+    , servant-swagger
+    , servant-swagger-ui
+    , servant-swagger-ui-core
+    , swagger2
+    , text
+    , time
+    , transformers
+    , validation
+    , vector
+    , wai
+    , wai-extra
+    , warp
 
 library
+  import: ghc
+  import: deps
   exposed-modules:
+      Database.Beam.Postgres.Extended
       Prelude
+      RealWorld.Conduit.Articles.Article
       RealWorld.Conduit.Articles.Database
       RealWorld.Conduit.Articles.Database.Article
       RealWorld.Conduit.Articles.Database.Article.Attributes
       RealWorld.Conduit.Articles.Database.ArticleTag
-      RealWorld.Conduit.Articles.Database.Commands
-      RealWorld.Conduit.Articles.Database.Decorated
       RealWorld.Conduit.Articles.Database.Favorite
-      RealWorld.Conduit.Articles.Database.Queries
       RealWorld.Conduit.Articles.Web
       RealWorld.Conduit.Articles.Web.All
-      RealWorld.Conduit.Articles.Web.Article
       RealWorld.Conduit.Articles.Web.Article.Attributes
       RealWorld.Conduit.Articles.Web.Articles
       RealWorld.Conduit.Articles.Web.Create
@@ -58,6 +111,7 @@ library
       RealWorld.Conduit.Users.Database.Queries
       RealWorld.Conduit.Users.Database.User
       RealWorld.Conduit.Users.Database.User.Attributes
+      RealWorld.Conduit.Users.Profile
       RealWorld.Conduit.Users.Web
       RealWorld.Conduit.Users.Web.Account
       RealWorld.Conduit.Users.Web.Claim
@@ -83,94 +137,21 @@ library
       Paths_realworld_conduit
   hs-source-dirs:
       src
-  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
-  ghc-options: -Wall
-  build-depends:
-      aeson
-    , base-noprelude >=4.10 && <4.12
-    , beam-core
-    , beam-postgres
-    , bytestring
-    , conduit
-    , containers
-    , data-default
-    , http-types
-    , insert-ordered-containers
-    , jose
-    , lens
-    , monad-control
-    , optparse-applicative
-    , postgresql-simple
-    , relude
-    , resource-pool
-    , scrypt
-    , servant
-    , servant-auth
-    , servant-auth-server
-    , servant-auth-swagger
-    , servant-server
-    , servant-swagger
-    , servant-swagger-ui
-    , servant-swagger-ui-core
-    , swagger2
-    , text
-    , time
-    , transformers
-    , validation
-    , vector
-    , wai
-    , wai-extra
-    , warp
-  default-language: Haskell2010
 
 executable realworld-conduit
+  import: ghc
+  import: deps
   main-is: Main.hs
   other-modules:
       Paths_realworld_conduit
   hs-source-dirs:
       app
-  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances
-  ghc-options: -Wall
   build-depends:
-      aeson
-    , base-noprelude >=4.10 && <4.12
-    , beam-core
-    , beam-postgres
-    , bytestring
-    , conduit
-    , containers
-    , data-default
-    , http-types
-    , insert-ordered-containers
-    , jose
-    , lens
-    , monad-control
-    , optparse-applicative
-    , postgresql-simple
-    , realworld-conduit
-    , relude
-    , resource-pool
-    , scrypt
-    , servant
-    , servant-auth
-    , servant-auth-server
-    , servant-auth-swagger
-    , servant-server
-    , servant-swagger
-    , servant-swagger-ui
-    , servant-swagger-ui-core
-    , swagger2
-    , text
-    , time
-    , transformers
-    , validation
-    , vector
-    , wai
-    , wai-extra
-    , warp
-  default-language: Haskell2010
+      realworld-conduit
 
 test-suite spec
+  import: ghc
+  import: deps
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
@@ -186,46 +167,10 @@ test-suite spec
       Test.Hspec.Wai.Extended
   hs-source-dirs:
       spec
-  default-extensions: DataKinds DeriveAnyClass DeriveGeneric DuplicateRecordFields FlexibleContexts FlexibleInstances KindSignatures MultiParamTypeClasses NamedFieldPuns OverloadedStrings PartialTypeSignatures ScopedTypeVariables StandaloneDeriving TypeFamilies TypeOperators TypeSynonymInstances QuasiQuotes
-  ghc-options: -Wall
   build-depends:
-      aeson
-    , base-noprelude >=4.10 && <4.12
-    , beam-core
-    , beam-postgres
-    , bytestring
-    , conduit
-    , containers
-    , data-default
-    , hspec
+      hspec
     , hspec-wai
     , hspec-wai-json
-    , http-types
-    , insert-ordered-containers
-    , jose
-    , lens
-    , monad-control
-    , optparse-applicative
-    , postgresql-simple
     , realworld-conduit
-    , relude
-    , resource-pool
-    , scrypt
-    , servant
-    , servant-auth
-    , servant-auth-server
-    , servant-auth-swagger
-    , servant-server
-    , servant-swagger
-    , servant-swagger-ui
-    , servant-swagger-ui-core
-    , swagger2
-    , text
-    , time
-    , transformers
-    , validation
-    , vector
-    , wai
-    , wai-extra
-    , warp
-  default-language: Haskell2010
+  default-extensions:
+    QuasiQuotes

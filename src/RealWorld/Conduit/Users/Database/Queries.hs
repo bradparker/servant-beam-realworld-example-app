@@ -6,28 +6,34 @@ module RealWorld.Conduit.Users.Database.Queries
   , followersAndFollowees
   , follows
   , following
+  , ProfileRow
+  , selectProfiles
   ) where
 
 import Crypto.Scrypt (EncryptedPass(EncryptedPass), Pass(Pass), verifyPass')
 import qualified Data.Foldable as Foldable
-import Database.Beam
+import Database.Beam.Postgres.Extended
   ( Nullable
+  , PgQExpr
+  , PgSelectSyntax
   , Q
-  , QExpr
   , (&&.)
   , (==.)
+  , aggregate_
   , all_
   , filter_
+  , group_
+  , just_
   , leftJoin_
   , manyToMany_
+  , pgBoolOr
   , primaryKey
   , references_
+  , runBeamPostgres
   , runSelectReturningList
   , select
   , val_
   )
-import Database.Beam.Postgres (runBeamPostgres)
-import Database.Beam.Postgres.Syntax (PgExpressionSyntax, PgSelectSyntax)
 import Database.PostgreSQL.Simple (Connection)
 import Prelude hiding (find)
 import RealWorld.Conduit.Database
@@ -46,8 +52,6 @@ import RealWorld.Conduit.Users.Database.User
   , UserId
   , UserT
   )
-
-type QueryExpression s = QExpr PgExpressionSyntax s
 
 find :: Connection -> UserId -> IO (Maybe User)
 find conn = findBy conn (all_ (conduitUsers conduitDb)) User.id . unUserId
@@ -69,9 +73,8 @@ findByCredentials conn credentials = do
     then pure found
     else pure Nothing
 
-followersAndFollowees ::
-     Q PgSelectSyntax ConduitDb s ( UserT (QExpr PgExpressionSyntax s)
-                                  , UserT (QExpr PgExpressionSyntax s))
+followersAndFollowees
+  :: Q PgSelectSyntax ConduitDb s (UserT (PgQExpr s), UserT (PgQExpr s))
 followersAndFollowees =
   manyToMany_
     (conduitFollows conduitDb)
@@ -80,13 +83,35 @@ followersAndFollowees =
     (all_ (conduitUsers conduitDb))
     (all_ (conduitUsers conduitDb))
 
-follows ::
-  UserT (QueryExpression s)
-  -> Q PgSelectSyntax ConduitDb s (FollowT (Nullable (QueryExpression s)))
+follows
+  :: UserT (PgQExpr s)
+  -> Q PgSelectSyntax ConduitDb s (FollowT (Nullable (PgQExpr s)))
 follows author =
   leftJoin_
     (all_ (conduitFollows conduitDb))
     ((`references_` author) . Follow.followee)
+
+type ProfileRow s =
+  ( PrimaryKey UserT (PgQExpr s)
+  , PgQExpr s Text
+  , PgQExpr s Text
+  , PgQExpr s (Maybe Text)
+  , PgQExpr s (Maybe Bool)
+  )
+
+selectProfiles
+  :: Maybe UserId
+  -> Q PgSelectSyntax ConduitDb s (UserT (PgQExpr s), PgQExpr s (Maybe Bool))
+selectProfiles currentUserId =
+  aggregate_ (\(user, following') -> (group_ user, pgBoolOr following')) $ do
+    user   <- all_ (conduitUsers conduitDb)
+    follow <- follows user
+    pure
+      ( user
+      , maybe (val_ False)
+              ((Follow.follower follow ==.) . just_ . val_)
+              currentUserId
+      )
 
 following :: Connection -> UserId -> UserId -> IO Bool
 following conn a b =

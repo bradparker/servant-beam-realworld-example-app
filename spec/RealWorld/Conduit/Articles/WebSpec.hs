@@ -19,8 +19,8 @@ import Network.Wai.Test (SResponse(simpleBody, simpleStatus))
 import Prelude hiding (ByteString)
 import RealWorld.Conduit.Articles.Web (Articles)
 import qualified RealWorld.Conduit.Articles.Web as Articles
-import RealWorld.Conduit.Articles.Web.Article (Article)
-import qualified RealWorld.Conduit.Articles.Web.Article as Article
+import RealWorld.Conduit.Articles.Article (Article)
+import qualified RealWorld.Conduit.Articles.Article as Article
 import RealWorld.Conduit.Articles.Web.Article.Attributes
   ( Attributes(Attributes)
   )

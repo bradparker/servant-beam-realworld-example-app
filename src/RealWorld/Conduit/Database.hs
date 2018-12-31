@@ -6,6 +6,8 @@ module RealWorld.Conduit.Database
   , openConduitDb
   , insertOne
   , findBy
+  , UnexpectedEmptyReturn(..)
+  , QueryError(..)
   ) where
 
 import Control.Exception (throwIO)
@@ -64,6 +66,11 @@ data ConduitDb f = ConduitDb
   } deriving (Generic)
 
 instance Database Postgres ConduitDb
+
+newtype QueryError = UnexpectedAmountOfRows Int
+  deriving Show
+
+instance Exception QueryError
 
 conduitDb :: DatabaseSettings Postgres ConduitDb
 conduitDb =

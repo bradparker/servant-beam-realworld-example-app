@@ -1,20 +1,10 @@
-{ compiler ? "default"
-}:
 let
-  nixpkgs = import ./nix/packages {
-    inherit compiler;
-  };
-
+  nixpkgs = import ./nix/packages;
   tools = import ./nix/tools.nix nixpkgs;
-
-  env = (import ./. {
-    inherit compiler;
-  }).env;
+  package = import ./.;
+  packageWithTools = nixpkgs.haskell.lib.addBuildDepends package tools;
 in
-  nixpkgs.lib.overrideDerivation env (drv: {
-    nativeBuildInputs =
-      drv.nativeBuildInputs ++
-      tools;
+  nixpkgs.lib.overrideDerivation packageWithTools.env (drv: {
     shellHook = drv.shellHook + "
       mkdir -p $PWD/database/pgdata
       export PGDATA=$PWD/database/pgdata

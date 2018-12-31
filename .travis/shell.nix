@@ -1,18 +1,6 @@
 let
-  compiler = "default";
-
-  nixpkgs = import ../nix/packages {
-    inherit compiler;
-  };
-
+  nixpkgs = import ../nix/packages;
   tools = import ./tools.nix nixpkgs;
-
-  env = (import ../. {
-    inherit compiler;
-  }).env;
+  package = import ../.;
 in
-  nixpkgs.lib.overrideDerivation env (drv: {
-    nativeBuildInputs =
-      drv.nativeBuildInputs ++
-      tools;
-  })
+  (nixpkgs.haskell.lib.addBuildDepends package tools).env

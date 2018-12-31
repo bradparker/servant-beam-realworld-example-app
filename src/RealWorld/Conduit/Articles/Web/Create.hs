@@ -1,21 +1,18 @@
 module RealWorld.Conduit.Articles.Web.Create
   ( handler
-  , decorateArticle
   , Create
   ) where
 
 import Control.Monad.Trans.Except (withExceptT)
 import Database.Beam (primaryKey)
+import RealWorld.Conduit.Articles.Article (Article)
 import qualified RealWorld.Conduit.Articles.Database as Database
-import qualified RealWorld.Conduit.Articles.Database.Article as Database
-import RealWorld.Conduit.Articles.Database.Article.Attributes (forInsert)
-import RealWorld.Conduit.Articles.Web.Article (Article, fromDecorated)
 import qualified RealWorld.Conduit.Articles.Web.Article.Attributes as Attributes
 import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
-import RealWorld.Conduit.Web.Errors (failedValidation, notFound)
+import RealWorld.Conduit.Web.Errors (failedValidation, internalServerError)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
 import Servant (Handler(Handler))
 import Servant.API ((:>), JSON, PostCreated, ReqBody)
@@ -36,30 +33,21 @@ handler ::
   -> Handler (Namespace "article" Article)
 handler environment authresult (Namespace params) = do
   user <- loadAuthorizedUser environment authresult
-  article <- createArticle environment user params
-  Namespace <$> decorateArticle environment (Just user) article
+  Namespace <$> createArticle environment user params
 
-decorateArticle :: Environment -> Maybe User -> Database.Article -> Handler Article
-decorateArticle environment currentUser article =
-  Handler $
-  withDatabaseConnection environment $ \conn ->
-    fromDecorated <$>
-    maybeToExceptT
-      (notFound "Article")
-      (MaybeT (Database.decorate conn currentUser article))
-
-createArticle :: Environment -> User -> Attributes.Create -> Handler Database.Article
+createArticle :: Environment -> User -> Attributes.Create -> Handler Article
 createArticle environment user params =
-  Handler $
   withDatabaseConnection environment $ \conn -> do
     attributes <-
+      Handler $
       withExceptT failedValidation $
-      forInsert
+      Database.attributesForInsert
         conn
         (Attributes.title params)
         (Attributes.description params)
         (Attributes.body params)
-    lift $ do
-      article <- Database.create conn (primaryKey user) attributes
-      Database.assignTags conn (primaryKey article) (Attributes.tagList params)
-      pure article
+        (Attributes.tagList params)
+    Handler $
+      withExceptT (internalServerError . show) $
+      usingReaderT conn $
+      Database.create (primaryKey user) attributes

@@ -1,14 +1,14 @@
 module RealWorld.Conduit.Articles.Web.View
   ( handler
-  , loadArticleBySlug
+  , loadArticle
   , View
   ) where
 
+import Database.Beam (primaryKey)
+import RealWorld.Conduit.Articles.Article (Article)
 import qualified RealWorld.Conduit.Articles.Database as Database
-import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
-import RealWorld.Conduit.Articles.Web.Article (Article)
-import RealWorld.Conduit.Articles.Web.Create (decorateArticle)
 import RealWorld.Conduit.Environment (Environment(..))
+import RealWorld.Conduit.Users.Database.User (UserId)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (optionallyLoadAuthorizedUser)
 import RealWorld.Conduit.Web.Errors (notFound)
@@ -32,12 +32,11 @@ handler ::
   -> Handler (Namespace "article" Article)
 handler environment slug authResult = do
   user <- optionallyLoadAuthorizedUser environment authResult
-  article <- loadArticleBySlug environment slug
-  Namespace <$> decorateArticle environment user article
+  Namespace <$> loadArticle environment (primaryKey <$> user) slug
 
-loadArticleBySlug :: Environment -> Text -> Handler Persisted.Article
-loadArticleBySlug environment slug =
-  withDatabaseConnection environment $ \conn ->
-    Handler $
-    maybeToExceptT (notFound "Article") $
-    MaybeT $ Database.findBySlug conn slug
+loadArticle :: Environment -> Maybe UserId -> Text -> Handler Article
+loadArticle environment currentUserId slug =
+  withDatabaseConnection environment $
+    Handler .
+    maybeToExceptT (notFound "Article") .
+    MaybeT . runReaderT (Database.find currentUserId slug)

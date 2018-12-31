@@ -1,5 +1,7 @@
 .envrc
+.ghc.environment.*
 database/pgdata
 dist
+dist-newstyle
 logs
 result

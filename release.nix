@@ -1,8 +1,8 @@
 let
-  nixpkgs = import ./nix/packages {};
+  nixpkgs = import ./nix/packages;
   package = nixpkgs.haskell.lib.justStaticExecutables
     (nixpkgs.haskell.lib.dontCheck
-      (import ./. {}));
+      (import ./.));
 in
   nixpkgs.dockerTools.buildImage {
     name = "realworld-conduit";
