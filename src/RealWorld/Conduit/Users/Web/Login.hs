@@ -32,5 +32,5 @@ login Environment {withDatabaseConnection, jwtSettings} creds =
   Handler $
   withDatabaseConnection $ \conn -> do
     user <-
-      maybeToExceptT notAuthorized $ MaybeT $ Database.findByCredentials conn creds
+      maybeToExceptT notAuthorized $ MaybeT $ usingReaderT conn $ Database.findByCredentials creds
     withExceptT (internalServerError . show) $ fromUser jwtSettings user

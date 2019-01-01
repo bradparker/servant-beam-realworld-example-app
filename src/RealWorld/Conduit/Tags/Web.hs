@@ -8,7 +8,7 @@ import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Tags.Database as Database
 import RealWorld.Conduit.Tags.Database.Tag as Persisted
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
-import Servant (Handler(Handler), Server)
+import Servant (Handler, Server)
 import Servant.API ((:>), Get, JSON)
 
 type All =
@@ -18,9 +18,10 @@ type All =
 
 query :: Environment -> Handler (Namespace "tags" [Text])
 query environment =
-  Handler $
-  withDatabaseConnection environment $ \conn ->
-    liftIO $ Namespace . map Persisted.name <$> Database.query conn
+  Namespace <$>
+  withDatabaseConnection
+    environment
+    ((map Persisted.name <$>) . runReaderT Database.query)
 
 type Tags = All
 

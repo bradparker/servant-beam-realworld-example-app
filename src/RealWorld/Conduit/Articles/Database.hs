@@ -17,9 +17,6 @@ import Control.Monad.Error.Class (MonadError, throwError)
 import Control.Monad.Reader.Class (MonadReader, ask)
 import Control.Monad.Trans.Control (MonadBaseControl)
 import qualified Data.Char as Char
-import qualified Data.Conduit as Conduit
-import Data.Conduit (ConduitT, (.|))
-import qualified Data.Conduit.List as Conduit
 import qualified Data.Map as Map
 import Data.Maybe (catMaybes)
 import qualified Data.Set as Set
@@ -28,7 +25,6 @@ import Data.Time (UTCTime, getCurrentTime)
 import Data.Validation (Validation(Failure, Success), validation)
 import Data.Vector (Vector)
 import qualified Data.Vector as Vector
-import Database.Beam.Postgres.Conduit (runInsert)
 import Database.Beam.Postgres.Extended
   ( Nullable
   , PgInsertReturning
@@ -69,6 +65,7 @@ import Database.Beam.Postgres.Extended
   , primaryKey
   , references_
   , runDelete
+  , runInsert
   , runInsertReturning
   , runSelect
   , runUpdateReturning
@@ -80,14 +77,21 @@ import Database.PostgreSQL.Simple (Connection)
 import Prelude hiding (all, find)
 import RealWorld.Conduit.Articles.Article (Article(Article))
 import qualified RealWorld.Conduit.Articles.Article as Article
+import RealWorld.Conduit.Articles.Article.Attributes (Attributes(..))
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Database.Article (ArticleT)
-import RealWorld.Conduit.Articles.Database.Article.Attributes (Attributes(..))
 import RealWorld.Conduit.Articles.Database.ArticleTag (ArticleTagT(ArticleTag))
 import qualified RealWorld.Conduit.Articles.Database.ArticleTag as ArticleTag
 import qualified RealWorld.Conduit.Articles.Database.Favorite as Favorite
 import RealWorld.Conduit.Articles.Database.Favorite (FavoriteT(..))
-import RealWorld.Conduit.Database (ConduitDb(..), QueryError(..), conduitDb)
+import RealWorld.Conduit.Database
+  ( ConduitDb(..)
+  , QueryError(..)
+  , conduitDb
+  , maybeRow
+  , rowList
+  , singleRow
+  )
 import qualified RealWorld.Conduit.Tags.Database as Tag
 import RealWorld.Conduit.Tags.Database.Tag (PrimaryKey(unTagId))
 import RealWorld.Conduit.Users.Database (selectProfiles)
@@ -100,24 +104,15 @@ import RealWorld.Conduit.Users.Database.User
   )
 import RealWorld.Conduit.Users.Profile (Profile(Profile))
 
-maybeRow :: Monad m => ConduitT () a m () -> m (Maybe a)
-maybeRow c = Conduit.runConduit (c .| Conduit.await)
-
-singleRow :: (MonadError QueryError m, Monad m) => ConduitT () a m () -> m a
-singleRow c = maybe (throwError (UnexpectedAmountOfRows 0)) pure =<< maybeRow c
-
-rowList :: Monad m => ConduitT () a m () -> m [a]
-rowList c = Conduit.runConduit (c .| Conduit.consume)
-
 insertArticle
   :: UserId -> UTCTime -> Attributes Identity -> PgInsertReturning Persisted.Article
-insertArticle authorId currentTime Attributes { slug, title, description, body }
+insertArticle authorId currentTime Attributes { title, description, body }
   = insertReturning
     (conduitArticles conduitDb)
     (insertExpressions
       [ Persisted.Article
           { Persisted.id          = default_
-          , Persisted.slug        = val_ slug
+          , Persisted.slug        = val_ (generateSlug title)
           , Persisted.title       = val_ title
           , Persisted.description = val_ description
           , Persisted.body        = val_ body
@@ -176,11 +171,11 @@ unsafeFind currentUserId slug = do
 
 updateArticle
   :: UTCTime -> Text -> Attributes Maybe -> PgUpdateReturning Persisted.Article
-updateArticle currentTime currentSlug Attributes { slug, title, description, body }
+updateArticle currentTime currentSlug Attributes { title, description, body }
   = updateReturning
     (conduitArticles conduitDb)
     (\article -> catMaybes
-      [ (Persisted.slug article <-.) . val_ <$> slug
+      [ (Persisted.slug article <-.) . val_  . generateSlug <$> title
       , (Persisted.title article <-.) . val_ <$> title
       , (Persisted.description article <-.) . val_ <$> description
       , (Persisted.body article <-.) . val_ <$> body
@@ -212,13 +207,13 @@ update authorId currentSlug attributes = do
   unsafeFind (Just authorId) (Persisted.slug updated)
 
 assignTags
-  :: (MonadReader Connection m, MonadIO m)
+  :: (MonadReader Connection m, MonadIO m, MonadBaseControl IO m)
   => Persisted.ArticleId
   -> Set Text
   -> m ()
 assignTags articleId tags = do
+  tagIds <- map primaryKey <$> Tag.create tags
   conn <- ask
-  tagIds <- liftIO $ map primaryKey <$> Tag.create conn tags
   void $
     runInsert conn $
     insert
@@ -239,7 +234,7 @@ deleteTags articleId = do
       ((val_ articleId ==.) . ArticleTag.article)
 
 replaceTags
-  :: (MonadReader Connection m, MonadIO m)
+  :: (MonadReader Connection m, MonadIO m, MonadBaseControl IO m)
   => Persisted.ArticleId
   -> Set Text
   -> m ()
@@ -531,8 +526,7 @@ attributesForInsert
 attributesForInsert title description body tags =
   (validation throwError pure =<<) . getCompose $
   Attributes
-    <$> pure (generateSlug title)
-    <*> makeTitle title
+    <$> makeTitle title
     <*> Compose (pure (makeDescription description))
     <*> Compose (pure (makeBody body))
     <*> pure tags
@@ -561,8 +555,7 @@ attributesForUpdate
 attributesForUpdate current title description body tags =
   (validation throwError pure =<<) . getCompose $
   Attributes
-    <$> pure (generateSlug <$> title)
-    <*> traverse (makeUpdateTitle (Article.slug current)) title
+    <$> traverse (makeUpdateTitle (Article.slug current)) title
     <*> traverse (Compose . pure . makeDescription) description
     <*> traverse (Compose . pure . makeBody) body
     <*> pure tags

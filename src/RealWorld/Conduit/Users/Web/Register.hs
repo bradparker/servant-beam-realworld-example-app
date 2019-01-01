@@ -9,7 +9,6 @@ import Data.Aeson (FromJSON, ToJSON)
 import Data.Swagger (ToSchema)
 import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Database
-import qualified RealWorld.Conduit.Users.Database.User.Attributes as Attributes
 import RealWorld.Conduit.Users.Web.Account (Account, fromUser)
 import RealWorld.Conduit.Web.Errors (failedValidation, internalServerError)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
@@ -48,12 +47,15 @@ register Environment {withDatabaseConnection, jwtSettings} registrant =
   withDatabaseConnection $ \conn -> do
     attributes <-
       withExceptT failedValidation $
-      Attributes.forInsert
-        conn
+      usingReaderT conn $
+      Database.attributesForInsert
         (password registrant)
         (email registrant)
         (username registrant)
         ""
         Nothing
-    user <- lift $ Database.create conn attributes
-    withExceptT (internalServerError . show) $ fromUser jwtSettings user
+    user <- withExceptT (internalServerError . show) $
+      usingReaderT conn $
+      Database.create attributes
+    withExceptT (internalServerError . show) $
+      fromUser jwtSettings user

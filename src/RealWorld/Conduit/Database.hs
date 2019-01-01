@@ -1,49 +1,29 @@
-{-# OPTIONS_GHC -fno-warn-partial-type-signatures #-}
-
 module RealWorld.Conduit.Database
   ( ConduitDb(..)
-  , conduitDb
-  , openConduitDb
-  , insertOne
-  , findBy
-  , UnexpectedEmptyReturn(..)
   , QueryError(..)
+  , conduitDb
+  , maybeRow
+  , openConduitDb
+  , rowList
+  , singleRow
   ) where
 
-import Control.Exception (throwIO)
+import Control.Monad.Error.Class (MonadError, throwError)
+import qualified Data.Conduit as Conduit
+import Data.Conduit (ConduitT, (.|))
+import qualified Data.Conduit.List as Conduit
 import Database.Beam
-  ( Beamable
-  , Database
-  , DatabaseEntity
+  ( Database
   , DatabaseSettings
-  , HasSqlEqualityCheck
-  , Identity
-  , Q
-  , QExpr
-  , SqlInsertValues
   , TableEntity
-  , (==.)
   , dbModification
   , defaultDbSettings
   , fieldNamed
-  , filter_
   , modifyTable
-  , runSelectReturningOne
-  , select
   , tableModification
-  , val_
   , withDbModification
   )
-import Database.Beam.Backend.SQL.BeamExtensions (MonadBeamInsertReturning(..))
-import Database.Beam.Backend.SQL.SQL92 (HasSqlValueSyntax)
-import Database.Beam.Backend.Types (Exposed, FromBackendRow)
-import Database.Beam.Postgres (Postgres, runBeamPostgres)
-import Database.Beam.Postgres.Syntax
-  ( PgExpressionSyntax
-  , PgInsertValuesSyntax
-  , PgSelectSyntax
-  , PgValueSyntax
-  )
+import Database.Beam.Postgres (Postgres)
 import Database.PostgreSQL.Simple (Connection, connectPostgreSQL)
 import RealWorld.Conduit.Articles.Database.Article (ArticleT)
 import qualified RealWorld.Conduit.Articles.Database.Article as Article
@@ -93,40 +73,11 @@ conduitDb =
 openConduitDb :: MonadIO m => ByteString -> m Connection
 openConduitDb = liftIO . connectPostgreSQL
 
-data UnexpectedEmptyReturn =
-  UnexpectedEmptyReturn
-  deriving (Show)
+maybeRow :: Monad m => ConduitT () a m () -> m (Maybe a)
+maybeRow c = Conduit.runConduit (c .| Conduit.await)
 
-instance Exception UnexpectedEmptyReturn
+singleRow :: (MonadError QueryError m, Monad m) => ConduitT () a m () -> m a
+singleRow c = maybe (throwError (UnexpectedAmountOfRows 0)) pure =<< maybeRow c
 
-insertOne ::
-     ( FromBackendRow Postgres (table Identity)
-     , Generic (table Exposed)
-     , Generic (table Identity)
-     , Beamable table
-     , MonadBeamInsertReturning syntax Postgres Connection m
-     )
-  => Connection
-  -> DatabaseEntity Postgres ConduitDb (TableEntity table)
-  -> SqlInsertValues PgInsertValuesSyntax (table (QExpr PgExpressionSyntax s))
-  -> IO (table Identity)
-insertOne conn table =
-  maybe (throwIO UnexpectedEmptyReturn) pure <=<
-  fmap listToMaybe . runBeamPostgres conn . runInsertReturningList table
-
-findBy ::
-     ( HasSqlValueSyntax PgValueSyntax a
-     , HasSqlEqualityCheck PgExpressionSyntax a
-     , FromBackendRow Postgres (table Identity)
-     , Generic (table Exposed)
-     , Generic (table Identity)
-     , Beamable table
-     )
-  => Connection
-  -> Q PgSelectSyntax ConduitDb _ (table (QExpr PgExpressionSyntax s))
-  -> (table (QExpr PgExpressionSyntax s) -> QExpr PgExpressionSyntax _ a)
-  -> a
-  -> IO (Maybe (table Identity))
-findBy conn scope column val =
-  runBeamPostgres conn $
-  runSelectReturningOne $ select $ filter_ ((val_ val ==.) . column) scope
+rowList :: Monad m => ConduitT () a m () -> m [a]
+rowList c = Conduit.runConduit (c .| Conduit.consume)

@@ -3,16 +3,17 @@ module RealWorld.Conduit.Users.Web.Profiles.Follow
   , handler
   ) where
 
+import Control.Monad.Except (withExceptT)
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Environment (Environment(..))
-import qualified RealWorld.Conduit.Users.Database as Users
-import RealWorld.Conduit.Users.Database.Decorated (Decorated(Decorated))
-import RealWorld.Conduit.Users.Database.User (User)
+import qualified RealWorld.Conduit.Users.Database as Database
+import RealWorld.Conduit.Users.Database.User (PrimaryKey(UserId), UserId)
+import RealWorld.Conduit.Users.Profile (Profile)
+import qualified RealWorld.Conduit.Users.Profile as Profile
 import RealWorld.Conduit.Users.Web.Claim (Claim)
-import RealWorld.Conduit.Users.Web.Profile (Profile)
-import qualified RealWorld.Conduit.Users.Web.Profile as Profile
-import RealWorld.Conduit.Users.Web.Profiles.View (loadUserByUserName)
+import RealWorld.Conduit.Users.Web.Profiles.View (loadProfile)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
+import RealWorld.Conduit.Web.Errors (internalServerError)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
 import Servant (Capture, Handler(Handler))
 import Servant.API ((:>), JSON, Post)
@@ -29,11 +30,11 @@ type Follow =
   Auth '[JWT] Claim :>
   Post '[JSON] (Namespace "profile" Profile)
 
-createFollow :: Environment -> User -> User -> Handler ()
-createFollow environment follower followee =
-  Handler $
-  withDatabaseConnection environment $ \conn ->
-    lift $ void $ Users.follow conn (primaryKey follower) (primaryKey followee)
+createFollow :: Environment -> UserId -> UserId -> Handler ()
+createFollow environment followerId followeeId =
+  Handler $ void $ withDatabaseConnection environment $
+    withExceptT (internalServerError . show) .
+    runReaderT (Database.follow followerId followeeId)
 
 handler ::
      Environment
@@ -41,7 +42,7 @@ handler ::
   -> AuthResult Claim
   -> Handler (Namespace "profile" Profile)
 handler environment username authresult = do
-  user <- loadAuthorizedUser environment authresult
-  profile <- loadUserByUserName environment username
-  Namespace (Profile.fromDecoratedUser (Decorated profile True)) <$
-    createFollow environment user profile
+  currentUserId <- primaryKey <$> loadAuthorizedUser environment authresult
+  profile <- loadProfile environment (Just currentUserId) username
+  createFollow environment currentUserId (UserId . Profile.id $ profile)
+  Namespace <$> loadProfile environment (Just currentUserId) username

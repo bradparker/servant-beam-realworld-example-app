@@ -21,10 +21,10 @@ import RealWorld.Conduit.Articles.Web (Articles)
 import qualified RealWorld.Conduit.Articles.Web as Articles
 import RealWorld.Conduit.Articles.Article (Article)
 import qualified RealWorld.Conduit.Articles.Article as Article
-import RealWorld.Conduit.Articles.Web.Article.Attributes
+import RealWorld.Conduit.Articles.Article.Attributes
   ( Attributes(Attributes)
   )
-import qualified RealWorld.Conduit.Articles.Web.Article.Attributes as Attributes
+import qualified RealWorld.Conduit.Articles.Article.Attributes as Attributes
 import RealWorld.Conduit.Environment (Environment)
 import RealWorld.Conduit.Spec.Web (withApp)
 import qualified RealWorld.Conduit.Users.Web as Users

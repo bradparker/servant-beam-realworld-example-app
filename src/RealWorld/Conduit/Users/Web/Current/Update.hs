@@ -8,17 +8,17 @@ import Data.Aeson (FromJSON)
 import Data.Swagger (ToSchema)
 import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Database
-import RealWorld.Conduit.Users.Database.User (User)
-import qualified RealWorld.Conduit.Users.Database.User.Attributes as Attributes
+import RealWorld.Conduit.Users.Database.User (User, PrimaryKey(unUserId))
 import RealWorld.Conduit.Users.Web.Account (Account, account)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
-import RealWorld.Conduit.Web.Errors (failedValidation)
+import RealWorld.Conduit.Web.Errors (failedValidation, internalServerError)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
-import Servant (Handler(Handler), ServantErr)
+import Servant (Handler(Handler))
 import Servant.API ((:>), JSON, Put, ReqBody)
 import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
+import Database.Beam (primaryKey)
 
 type Update =
   "api" :>
@@ -46,20 +46,23 @@ handler ::
   -> Handler (Namespace "user" Account)
 handler environment authresult (Namespace params) = do
   user <- loadAuthorizedUser environment authresult
-  updated <- Handler $ update environment user params
+  updated <- update environment user params
   Namespace <$> account environment updated
 
-update :: Environment -> User -> UserUpdate -> ExceptT ServantErr IO User
+update :: Environment -> User -> UserUpdate -> Handler User
 update environment user params =
+  Handler $
   withDatabaseConnection environment $ \conn -> do
     attributes <-
       withExceptT failedValidation $
-      Attributes.forUpdate
-        conn
+      usingReaderT conn $
+      Database.attributesForUpdate
         user
         (password params)
         (email params)
         (username params)
         (bio params)
         (image params)
-    lift $ Database.update conn user attributes
+    withExceptT (internalServerError . show) $
+      usingReaderT conn $
+      Database.update (unUserId (primaryKey user)) attributes

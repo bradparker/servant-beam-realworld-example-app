@@ -36,7 +36,8 @@ handler environment slug authResult = do
 
 loadArticle :: Environment -> Maybe UserId -> Text -> Handler Article
 loadArticle environment currentUserId slug =
-  withDatabaseConnection environment $
-    Handler .
-    maybeToExceptT (notFound "Article") .
-    MaybeT . runReaderT (Database.find currentUserId slug)
+  withDatabaseConnection environment
+    $ Handler
+    . maybeToExceptT (notFound "Article")
+    . MaybeT
+    . runReaderT (Database.find currentUserId slug)

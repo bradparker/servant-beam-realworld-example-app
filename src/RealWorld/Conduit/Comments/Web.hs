@@ -3,20 +3,23 @@ module RealWorld.Conduit.Comments.Web
   , Comments
   ) where
 
+import qualified RealWorld.Conduit.Users.Profile as Profile
+import qualified RealWorld.Conduit.Comments.Comment as Comment
+import qualified RealWorld.Conduit.Users.Database.User as User
+import Control.Monad.Trans.Except (withExceptT)
 import Data.Aeson (FromJSON(..), ToJSON(..))
 import Data.Swagger (ToSchema)
 import Database.Beam (primaryKey)
 import qualified RealWorld.Conduit.Articles.Article as Article
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Web.View (loadArticle)
+import RealWorld.Conduit.Comments.Comment (Comment)
 import qualified RealWorld.Conduit.Comments.Database as Database
-import qualified RealWorld.Conduit.Comments.Database.Comment as Persisted
-import RealWorld.Conduit.Comments.Web.Comment (Comment, fromPersisted)
 import RealWorld.Conduit.Environment (Environment(..))
-import RealWorld.Conduit.Users.Database.User (User)
+import RealWorld.Conduit.Users.Database.User (UserId)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
-import RealWorld.Conduit.Web.Errors (forbidden, notFound)
+import RealWorld.Conduit.Web.Errors (forbidden, internalServerError, notFound)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
 import Servant (Handler(Handler), Server, throwError)
 import Servant.API
@@ -55,13 +58,13 @@ create ::
   -> Namespace "comment" CommentAttributes
   -> AuthResult Claim
   -> Handler (Namespace "comment" Comment)
-create environment slug (Namespace params) authResult = do
+create environment slug (Namespace params) authResult = Namespace <$> do
   user <- loadAuthorizedUser environment authResult
   article <- loadArticle environment (Just (primaryKey user)) slug
-  withDatabaseConnection environment $ \conn ->
-    liftIO $
-    Namespace . fromPersisted user <$>
-    Database.create conn (primaryKey user) (Persisted.ArticleId (Article.id article)) (body params)
+  Handler $ withDatabaseConnection environment $ \conn ->
+    withExceptT (internalServerError . show) $
+      usingReaderT conn $
+      Database.create (primaryKey user) (Persisted.ArticleId (Article.id article)) (body params)
 
 type Destroy =
   "api" :>
@@ -72,25 +75,27 @@ type Destroy =
   Auth '[JWT] Claim :>
   DeleteNoContent '[JSON] NoContent
 
-loadCommentById :: Environment -> Int -> Handler (User, Persisted.Comment)
-loadCommentById environment identifier =
-  Handler $
-  withDatabaseConnection environment $ \conn ->
-    maybeToExceptT (notFound "Article") $
-    MaybeT $ Database.find conn (Persisted.CommentId identifier)
+loadComment :: Environment -> Maybe UserId -> Int -> Handler Comment
+loadComment environment currentUserId identifier =
+  withDatabaseConnection environment
+    $ Handler
+    . maybeToExceptT (notFound "Comment")
+    . MaybeT
+    . runReaderT (Database.find currentUserId identifier)
 
 destroy :: Environment -> Text -> Int -> AuthResult Claim -> Handler NoContent
 destroy environment slug identifier authResult = do
   user <- loadAuthorizedUser environment authResult
   void $ loadArticle environment (Just (primaryKey user)) slug
-  (author, comment) <- loadCommentById environment identifier
-  unless (primaryKey author == primaryKey user) (throwError forbidden)
-  NoContent <$ destroyComment environment comment
+  comment <- loadComment environment (Just (primaryKey user)) identifier
+  unless
+    (Profile.username (Comment.author comment) == User.username user)
+    (throwError forbidden)
+  NoContent <$ destroyComment environment (Comment.id comment)
 
-destroyComment :: Environment -> Persisted.Comment -> Handler ()
+destroyComment :: Environment -> Int -> Handler ()
 destroyComment environment comment =
-  withDatabaseConnection environment $ \conn ->
-    liftIO $ Database.destroy conn $ primaryKey comment
+  withDatabaseConnection environment $ runReaderT (Database.destroy comment)
 
 type AllForArticle =
   "api" :>
@@ -100,12 +105,11 @@ type AllForArticle =
   Get '[JSON] (Namespace "comments" [Comment])
 
 allForArticle :: Environment -> Text -> Handler (Namespace "comments" [Comment])
-allForArticle environment slug = do
-  article <- loadArticle environment Nothing slug
-  Handler $
-    withDatabaseConnection environment $ \conn ->
-      Namespace . (uncurry fromPersisted <$>) <$>
-      liftIO (Database.forArticle conn (Persisted.ArticleId (Article.id article)))
+allForArticle environment slug =
+  Namespace <$> do
+    article <- loadArticle environment Nothing slug
+    withDatabaseConnection environment $
+      runReaderT $ Database.forArticle Nothing (Article.slug article)
 
 type Comments = Create :<|> Destroy :<|> AllForArticle
 

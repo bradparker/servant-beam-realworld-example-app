@@ -5,7 +5,7 @@ module RealWorld.Conduit.Web.Auth
 
 import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Users
-import RealWorld.Conduit.Users.Database.User (PrimaryKey(UserId), User)
+import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim(Claim))
 import RealWorld.Conduit.Web.Errors (notAuthorized)
 import Servant (Handler(Handler), throwError)
@@ -18,7 +18,7 @@ loadAuthorizedUser environment authResult =
       withDatabaseConnection environment $ \conn ->
         Handler $
         maybeToExceptT notAuthorized $
-        MaybeT $ Users.find conn (UserId identifier)
+        MaybeT $ runReaderT (Users.find identifier) conn
     _ -> throwError notAuthorized
 
 optionallyLoadAuthorizedUser :: Environment -> AuthResult Claim -> Handler (Maybe User)

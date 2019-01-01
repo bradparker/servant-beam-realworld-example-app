@@ -76,14 +76,13 @@ library
       Database.Beam.Postgres.Extended
       Prelude
       RealWorld.Conduit.Articles.Article
+      RealWorld.Conduit.Articles.Article.Attributes
       RealWorld.Conduit.Articles.Database
       RealWorld.Conduit.Articles.Database.Article
-      RealWorld.Conduit.Articles.Database.Article.Attributes
       RealWorld.Conduit.Articles.Database.ArticleTag
       RealWorld.Conduit.Articles.Database.Favorite
       RealWorld.Conduit.Articles.Web
       RealWorld.Conduit.Articles.Web.All
-      RealWorld.Conduit.Articles.Web.Article.Attributes
       RealWorld.Conduit.Articles.Web.Articles
       RealWorld.Conduit.Articles.Web.Create
       RealWorld.Conduit.Articles.Web.Destroy
@@ -93,10 +92,10 @@ library
       RealWorld.Conduit.Articles.Web.Update
       RealWorld.Conduit.Articles.Web.View
       RealWorld.Conduit.Attribute
+      RealWorld.Conduit.Comments.Comment
       RealWorld.Conduit.Comments.Database
       RealWorld.Conduit.Comments.Database.Comment
       RealWorld.Conduit.Comments.Web
-      RealWorld.Conduit.Comments.Web.Comment
       RealWorld.Conduit.Database
       RealWorld.Conduit.Environment
       RealWorld.Conduit.Options
@@ -104,14 +103,11 @@ library
       RealWorld.Conduit.Tags.Database.Tag
       RealWorld.Conduit.Tags.Web
       RealWorld.Conduit.Users.Database
-      RealWorld.Conduit.Users.Database.Commands
       RealWorld.Conduit.Users.Database.Credentials
-      RealWorld.Conduit.Users.Database.Decorated
       RealWorld.Conduit.Users.Database.Follow
-      RealWorld.Conduit.Users.Database.Queries
       RealWorld.Conduit.Users.Database.User
-      RealWorld.Conduit.Users.Database.User.Attributes
       RealWorld.Conduit.Users.Profile
+      RealWorld.Conduit.Users.User.Attributes
       RealWorld.Conduit.Users.Web
       RealWorld.Conduit.Users.Web.Account
       RealWorld.Conduit.Users.Web.Claim
@@ -119,7 +115,6 @@ library
       RealWorld.Conduit.Users.Web.Current.Update
       RealWorld.Conduit.Users.Web.Current.View
       RealWorld.Conduit.Users.Web.Login
-      RealWorld.Conduit.Users.Web.Profile
       RealWorld.Conduit.Users.Web.Profiles
       RealWorld.Conduit.Users.Web.Profiles.Follow
       RealWorld.Conduit.Users.Web.Profiles.Unfollow

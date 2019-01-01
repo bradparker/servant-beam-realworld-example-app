@@ -7,7 +7,7 @@ import Control.Monad.Trans.Except (withExceptT)
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Articles.Article (Article)
 import qualified RealWorld.Conduit.Articles.Database as Database
-import qualified RealWorld.Conduit.Articles.Web.Article.Attributes as Attributes
+import qualified RealWorld.Conduit.Articles.Article.Attributes as Attributes
 import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Database.User (User)
 import RealWorld.Conduit.Users.Web.Claim (Claim)

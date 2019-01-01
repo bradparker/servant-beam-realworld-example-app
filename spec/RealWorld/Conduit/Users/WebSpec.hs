@@ -22,8 +22,8 @@ import RealWorld.Conduit.Spec.Web (withApp)
 import RealWorld.Conduit.Users.Web (server, users)
 import qualified RealWorld.Conduit.Users.Web.Account as Account
 import RealWorld.Conduit.Users.Web.Account (Account)
-import RealWorld.Conduit.Users.Web.Profile (Profile)
-import qualified RealWorld.Conduit.Users.Web.Profile as Profile
+import RealWorld.Conduit.Users.Profile (Profile)
+import qualified RealWorld.Conduit.Users.Profile as Profile
 import RealWorld.Conduit.Users.Web.Register (Registrant(Registrant))
 import qualified RealWorld.Conduit.Web as Web
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace), unNamespace)
@@ -270,7 +270,7 @@ spec =
           liftIO $ do
             simpleStatus res `shouldBe` status404
             simpleBody res `shouldBe`
-              [json|{ message: "User not found", errors: null }|]
+              [json|{ message: "Profile not found", errors: null }|]
 
     describe "POST /api/profiles/:username/follow" $ do
       context "when user isn't authenticated" $

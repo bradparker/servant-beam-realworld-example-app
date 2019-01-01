@@ -6,15 +6,14 @@ module RealWorld.Conduit.Users.Web.Profiles.Unfollow
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Users
-import RealWorld.Conduit.Users.Database.Decorated (Decorated(Decorated))
-import RealWorld.Conduit.Users.Database.User (User)
+import RealWorld.Conduit.Users.Database.User (UserId, PrimaryKey(UserId))
 import RealWorld.Conduit.Users.Web.Claim (Claim)
-import RealWorld.Conduit.Users.Web.Profile (Profile)
-import qualified RealWorld.Conduit.Users.Web.Profile as Profile
-import RealWorld.Conduit.Users.Web.Profiles.View (loadUserByUserName)
+import RealWorld.Conduit.Users.Profile (Profile)
+import qualified RealWorld.Conduit.Users.Profile as Profile
+import RealWorld.Conduit.Users.Web.Profiles.View (loadProfile)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
-import Servant (Capture, Handler(Handler))
+import Servant (Capture, Handler)
 import Servant.API ((:>), Delete, JSON)
 import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
@@ -29,11 +28,10 @@ type Unfollow =
   Auth '[JWT] Claim :>
   Delete '[JSON] (Namespace "profile" Profile)
 
-deleteFollow :: Environment -> User -> User -> Handler ()
+deleteFollow :: Environment -> UserId -> UserId -> Handler ()
 deleteFollow environment follower followee =
-  Handler $
-  withDatabaseConnection environment $ \conn ->
-    lift $ void $ Users.unfollow conn (primaryKey follower) (primaryKey followee)
+  withDatabaseConnection environment $
+  runReaderT $ Users.unfollow follower followee
 
 handler ::
      Environment
@@ -41,7 +39,7 @@ handler ::
   -> AuthResult Claim
   -> Handler (Namespace "profile" Profile)
 handler environment username authresult = do
-  user <- loadAuthorizedUser environment authresult
-  profile <- loadUserByUserName environment username
-  Namespace (Profile.fromDecoratedUser (Decorated profile False)) <$
-    deleteFollow environment user profile
+  currentUserId <- primaryKey <$> loadAuthorizedUser environment authresult
+  profile <- loadProfile environment (Just currentUserId) username
+  deleteFollow environment currentUserId (UserId . Profile.id $ profile)
+  Namespace <$> loadProfile environment (Just currentUserId) username

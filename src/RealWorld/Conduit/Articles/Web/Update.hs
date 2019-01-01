@@ -6,17 +6,22 @@ module RealWorld.Conduit.Articles.Web.Update
 
 import Control.Monad.Trans.Except (withExceptT)
 import Database.Beam (primaryKey)
-import qualified RealWorld.Conduit.Articles.Database as Database
 import RealWorld.Conduit.Articles.Article (Article)
 import qualified RealWorld.Conduit.Articles.Article as Article
-import qualified RealWorld.Conduit.Articles.Web.Article.Attributes as Attributes
+import qualified RealWorld.Conduit.Articles.Article.Attributes as Attributes
+import qualified RealWorld.Conduit.Articles.Database as Database
+import RealWorld.Conduit.Articles.Web.View (loadArticle)
 import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Database.User (User, UserId)
 import qualified RealWorld.Conduit.Users.Database.User as User
+import qualified RealWorld.Conduit.Users.Profile as Profile
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (loadAuthorizedUser)
-import RealWorld.Conduit.Web.Errors (failedValidation, forbidden, notFound, internalServerError)
-import qualified RealWorld.Conduit.Users.Profile as Profile
+import RealWorld.Conduit.Web.Errors
+  ( failedValidation
+  , forbidden
+  , internalServerError
+  )
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
 import Servant (Handler(Handler), throwError)
 import Servant.API ((:>), Capture, JSON, Put, ReqBody)
@@ -30,13 +35,6 @@ type Update =
   ReqBody '[JSON] (Namespace "article" Attributes.Update) :>
   Auth '[JWT] Claim :>
   Put '[JSON] (Namespace "article" Article)
-
-loadArticle :: Environment -> Maybe UserId -> Text -> Handler Article
-loadArticle environment currentUserId slug =
-  withDatabaseConnection environment $
-    Handler .
-    maybeToExceptT (notFound "Article") .
-    MaybeT . runReaderT (Database.find currentUserId slug)
 
 handler ::
      Environment
@@ -59,16 +57,16 @@ updateArticle
 updateArticle environment currentUserId article params =
   withDatabaseConnection environment $ \conn -> do
     attributes <-
-      Handler $
-      withExceptT failedValidation $
-      usingReaderT conn $
-      Database.attributesForUpdate
-        article
-        (Attributes.title params)
-        (Attributes.description params)
-        (Attributes.body params)
-        (Attributes.tagList params)
-    Handler $
-      withExceptT (internalServerError . show) $
-      usingReaderT conn $
-      Database.update currentUserId (Article.slug article) attributes
+      Handler
+        $ withExceptT failedValidation
+        $ usingReaderT conn
+        $ Database.attributesForUpdate
+            article
+            (Attributes.title params)
+            (Attributes.description params)
+            (Attributes.body params)
+            (Attributes.tagList params)
+    Handler
+      $ withExceptT (internalServerError . show)
+      $ usingReaderT conn
+      $ Database.update currentUserId (Article.slug article) attributes

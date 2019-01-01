@@ -1,17 +1,14 @@
 module RealWorld.Conduit.Users.Web.Profiles.View
   ( View
   , handler
-  , loadUserByUserName
+  , loadProfile
   ) where
 
 import Database.Beam (primaryKey)
 import RealWorld.Conduit.Environment (Environment(..))
-import qualified RealWorld.Conduit.Users.Database as Users
-import RealWorld.Conduit.Users.Database.Decorated (Decorated(Decorated))
-import RealWorld.Conduit.Users.Database.User (User)
+import qualified RealWorld.Conduit.Users.Database as Database
+import RealWorld.Conduit.Users.Database.User (UserId)
 import RealWorld.Conduit.Users.Web.Claim (Claim)
-import RealWorld.Conduit.Users.Web.Profile (Profile)
-import qualified RealWorld.Conduit.Users.Web.Profile as Profile
 import RealWorld.Conduit.Web.Auth (optionallyLoadAuthorizedUser)
 import RealWorld.Conduit.Web.Errors (notFound)
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace))
@@ -19,6 +16,7 @@ import Servant (Capture, Handler(Handler))
 import Servant.API ((:>), Get, JSON)
 import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
+import RealWorld.Conduit.Users.Profile (Profile)
 
 type Username = Text
 
@@ -29,30 +27,19 @@ type View =
   Auth '[JWT] Claim :>
   Get '[JSON] (Namespace "profile" Profile)
 
-loadUserByUserName :: Environment -> Username -> Handler User
-loadUserByUserName environment username =
-  withDatabaseConnection environment $ \conn ->
-    Handler $
-    maybeToExceptT (notFound "User") $
-    MaybeT $ Users.findByUsername conn username
+loadProfile :: Environment -> Maybe UserId -> Text -> Handler Profile
+loadProfile environment currentUserId username =
+  withDatabaseConnection environment
+    $ Handler
+    . maybeToExceptT (notFound "Profile")
+    . MaybeT
+    . runReaderT (Database.findProfile currentUserId username)
 
-queryFollowing :: Environment -> User -> User -> Handler Bool
-queryFollowing environment follower followee =
-  withDatabaseConnection environment $ \conn ->
-    Handler $
-    lift $ Users.following conn (primaryKey follower) (primaryKey followee)
-
-handler ::
-     Environment
+handler
+  :: Environment
   -> Username
   -> AuthResult Claim
   -> Handler (Namespace "profile" Profile)
 handler environment username authResult = do
   currentUser <- optionallyLoadAuthorizedUser environment authResult
-  profileUser <- loadUserByUserName environment username
-  following <-
-    maybe
-      (pure False)
-      (\user -> queryFollowing environment user profileUser)
-      currentUser
-  pure $ Namespace $ Profile.fromDecoratedUser $ Decorated profileUser following
+  Namespace <$> loadProfile environment (primaryKey <$> currentUser) username
