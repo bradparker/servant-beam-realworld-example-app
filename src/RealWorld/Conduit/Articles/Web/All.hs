@@ -3,9 +3,12 @@ module RealWorld.Conduit.Articles.Web.All
   , All
   ) where
 
-import Prelude hiding (All)
 import qualified Data.Set as Set
+import Database.Beam (primaryKey)
+import Prelude hiding (All)
 import qualified RealWorld.Conduit.Articles.Database as Database
+import qualified RealWorld.Conduit.Articles.Web.Articles as Articles
+import RealWorld.Conduit.Articles.Web.Articles (Articles)
 import RealWorld.Conduit.Environment (Environment(..))
 import RealWorld.Conduit.Users.Web.Claim (Claim)
 import RealWorld.Conduit.Web.Auth (optionallyLoadAuthorizedUser)
@@ -13,21 +16,6 @@ import Servant (Handler)
 import Servant.API ((:>), Get, JSON, QueryParam, QueryParams)
 import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
-import Database.Beam (primaryKey)
-
-import RealWorld.Conduit.Articles.Article (Article)
-import Data.Aeson (FromJSON(..), ToJSON(..))
-import Data.Swagger (ToSchema)
-
-data Articles = Articles
-  { articles :: [Article]
-  , articlesCount :: Int
-  }
-
-deriving instance Generic Articles
-deriving instance ToJSON Articles
-deriving instance ToSchema Articles
-deriving instance FromJSON Articles
 
 type All =
   "api" :>
@@ -52,13 +40,12 @@ handler
 handler environment limit offset tags authors favorited authResult = do
   user <- optionallyLoadAuthorizedUser environment authResult
   withDatabaseConnection environment $ \conn ->
-    (Articles <$> id <*> length) <$>
-    usingReaderT
-      conn
-      (Database.all
-         (primaryKey <$> user)
-         (fromMaybe 20 limit)
-         (fromMaybe 0 offset)
-         (Set.fromList authors)
-         (Set.fromList tags)
-         (Set.fromList favorited))
+    Articles.fromList <$>
+      usingReaderT conn
+        (Database.all
+           (primaryKey <$> user)
+           (fromMaybe 20 limit)
+           (fromMaybe 0 offset)
+           (Set.fromList authors)
+           (Set.fromList tags)
+           (Set.fromList favorited))

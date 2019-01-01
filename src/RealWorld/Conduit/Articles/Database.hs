@@ -6,26 +6,26 @@ module RealWorld.Conduit.Articles.Database
   , feed
   , find
   , unsafeFind
-  , findBySlug
   , unfavorite
   , update
   , attributesForUpdate
   , attributesForInsert
   ) where
 
-import qualified Data.Text as Text
-import Data.Validation (Validation(Success, Failure), toEither)
-import qualified Data.Map as Map
-import Control.Monad.Trans.Control (MonadBaseControl)
-import Control.Monad.Reader.Class (MonadReader, ask)
-import Control.Monad.Error.Class (throwError, MonadError)
 import Control.Lens ((^.), _1, _2, _3, _4, _5, _6, view)
+import Control.Monad.Error.Class (MonadError, throwError)
+import Control.Monad.Reader.Class (MonadReader, ask)
+import Control.Monad.Trans.Control (MonadBaseControl)
+import qualified Data.Char as Char
 import qualified Data.Conduit as Conduit
-import Data.Conduit ((.|), ConduitT)
+import Data.Conduit (ConduitT, (.|))
 import qualified Data.Conduit.List as Conduit
+import qualified Data.Map as Map
 import Data.Maybe (catMaybes)
 import qualified Data.Set as Set
+import qualified Data.Text as Text
 import Data.Time (UTCTime, getCurrentTime)
+import Data.Validation (Validation(Failure, Success), validation)
 import Data.Vector (Vector)
 import qualified Data.Vector as Vector
 import Database.Beam.Postgres.Conduit (runInsert)
@@ -47,6 +47,7 @@ import Database.Beam.Postgres.Extended
   , default_
   , delete
   , desc_
+  , exists_
   , group_
   , guard_
   , in_
@@ -79,7 +80,6 @@ import Database.PostgreSQL.Simple (Connection)
 import Prelude hiding (all, find)
 import RealWorld.Conduit.Articles.Article (Article(Article))
 import qualified RealWorld.Conduit.Articles.Article as Article
-import qualified Data.Char as Char
 import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import RealWorld.Conduit.Articles.Database.Article (ArticleT)
 import RealWorld.Conduit.Articles.Database.Article.Attributes (Attributes(..))
@@ -87,12 +87,7 @@ import RealWorld.Conduit.Articles.Database.ArticleTag (ArticleTagT(ArticleTag))
 import qualified RealWorld.Conduit.Articles.Database.ArticleTag as ArticleTag
 import qualified RealWorld.Conduit.Articles.Database.Favorite as Favorite
 import RealWorld.Conduit.Articles.Database.Favorite (FavoriteT(..))
-import RealWorld.Conduit.Database
-  ( ConduitDb(..)
-  , conduitDb
-  , findBy
-  , QueryError(..)
-  )
+import RealWorld.Conduit.Database (ConduitDb(..), QueryError(..), conduitDb)
 import qualified RealWorld.Conduit.Tags.Database as Tag
 import RealWorld.Conduit.Tags.Database.Tag (PrimaryKey(unTagId))
 import RealWorld.Conduit.Users.Database (selectProfiles)
@@ -287,9 +282,6 @@ unfavorite article user = do
     delete (conduitFavorites conduitDb) $ \(Favorite favArticle favUser) ->
       favUser ==. val_ user &&. favArticle ==. val_ article
 
-findBySlug :: Connection -> Text -> IO (Maybe Persisted.Article)
-findBySlug conn = findBy conn (all_ (conduitArticles conduitDb)) Persisted.slug
-
 type ArticleRow s =
   ( ArticleT (PgQExpr s)
   , PgQExpr s (Vector (Maybe Text))
@@ -466,21 +458,32 @@ selectTags article =
 type ValidationErrors = Map Text [Text]
 
 generateSlug :: Text -> Text
-generateSlug =
-  Text.intercalate "-" .
-  Text.words . Text.toLower . Text.filter ((||) <$> Char.isAlphaNum <*> Char.isSpace)
+generateSlug = Text.intercalate "-" . Text.words . Text.toLower . Text.filter
+  ((||) <$> Char.isAlphaNum <*> Char.isSpace)
 
-insertSlug
-  :: Connection -> Text -> Compose IO (Validation ValidationErrors) Text
-insertSlug conn title =
-  Compose $ do
-    existing <- findBySlug conn value
-    pure $
-      case existing of
-        Nothing -> Success value
-        Just _ -> Failure (Map.singleton "title" ["Would produce duplicate slug: " <> value])
+slugExists
+  :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
+  => Text
+  -> m Bool
+slugExists slug = do
+  conn <- ask
+  fromMaybe False <$> runSelect conn (select query) maybeRow
   where
-    value = generateSlug title
+    query :: Q PgSelectSyntax ConduitDb s (PgQExpr s Bool)
+    query = pure $ exists_ $ do
+      article <- all_ (conduitArticles conduitDb)
+      guard_ (Persisted.slug article ==. val_ slug)
+      pure article
+
+unique
+  :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
+  => (a -> m Bool)
+  -> ValidationErrors
+  -> a
+  -> Compose m (Validation ValidationErrors) a
+unique checker err value = Compose $ do
+  taken <- checker value
+  pure $ if taken then Failure err else Success value
 
 require :: Text -> Text -> Validation ValidationErrors Text
 require attr value =
@@ -488,8 +491,25 @@ require attr value =
     then Failure (Map.singleton attr ["Required"])
     else Success value
 
-makeTitle :: Text -> Validation ValidationErrors Text
-makeTitle = require "title"
+ensureTitleGeneratesUniqueSlug
+  :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
+  => Text
+  -> Compose m (Validation ValidationErrors) Text
+ensureTitleGeneratesUniqueSlug title =
+  title <$
+  unique
+    slugExists
+    (Map.singleton "title" ["Would produce duplicate slug: " <> slug])
+    slug
+  where
+    slug = generateSlug title
+
+makeTitle
+  :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
+  => Text
+  -> Compose m (Validation ValidationErrors) Text
+makeTitle title =
+  pure (require "title" title) *> ensureTitleGeneratesUniqueSlug title
 
 makeDescription :: Text -> Validation ValidationErrors Text
 makeDescription = require "description"
@@ -497,46 +517,52 @@ makeDescription = require "description"
 makeBody :: Text -> Validation ValidationErrors Text
 makeBody = require "body"
 
-attributesForInsert ::
-     Connection
-  -> Text
+attributesForInsert
+  :: ( MonadIO m
+     , MonadReader Connection m
+     , MonadBaseControl IO m
+     , MonadError ValidationErrors m
+     )
+  => Text
   -> Text
   -> Text
   -> Set Text
-  -> ExceptT ValidationErrors IO (Attributes Identity)
-attributesForInsert conn title description body tags =
-  ExceptT . (toEither <$>) . getCompose $
+  -> m (Attributes Identity)
+attributesForInsert title description body tags =
+  (validation throwError pure =<<) . getCompose $
   Attributes
-    <$> insertSlug conn title
-    <*> Compose (pure (makeTitle title))
+    <$> pure (generateSlug title)
+    <*> makeTitle title
     <*> Compose (pure (makeDescription description))
     <*> Compose (pure (makeBody body))
     <*> pure tags
 
-makeUpdateSlug ::
-     Connection
-  -> Article
+makeUpdateTitle
+  :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
+  => Text
   -> Text
-  -> Compose IO (Validation ValidationErrors) Text
-makeUpdateSlug conn current title
-  | value == Article.slug current = pure value
-  | otherwise = insertSlug conn title
-  where
-    value = generateSlug title
+  -> Compose m (Validation ValidationErrors) Text
+makeUpdateTitle current title
+  | generateSlug title == current = Compose . pure $ require "title" title
+  | otherwise = makeTitle title
 
-attributesForUpdate ::
-     Connection
-  -> Article
+attributesForUpdate
+  :: ( MonadIO m
+     , MonadReader Connection m
+     , MonadBaseControl IO m
+     , MonadError ValidationErrors m
+     )
+  => Article
   -> Maybe Text
   -> Maybe Text
   -> Maybe Text
   -> Maybe (Set Text)
-  -> ExceptT ValidationErrors IO (Attributes Maybe)
-attributesForUpdate conn current title description body tags =
-  ExceptT . (toEither <$>) . getCompose $
+  -> m (Attributes Maybe)
+attributesForUpdate current title description body tags =
+  (validation throwError pure =<<) . getCompose $
   Attributes
-    <$> traverse (makeUpdateSlug conn current) title
-    <*> traverse (Compose . pure . makeTitle) title
+    <$> pure (generateSlug <$> title)
+    <*> traverse (makeUpdateTitle (Article.slug current)) title
     <*> traverse (Compose . pure . makeDescription) description
     <*> traverse (Compose . pure . makeBody) body
     <*> pure tags

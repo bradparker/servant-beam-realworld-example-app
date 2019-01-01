@@ -45,8 +45,8 @@ spec =
       it "returns an Attributes Identity when valid" $ \conn -> do
         attributes <-
           runExceptT $
+          usingReaderT conn $
           attributesForInsert
-            conn
             "Title"
             "Description"
             "Body"
@@ -66,8 +66,8 @@ spec =
             createParams {Attributes.title = "Taken", Attributes.slug = "taken"}
         attributes <-
           runExceptT $
+          usingReaderT conn $
           attributesForInsert
-            conn
             "Taken"
             "Description"
             "Body"
@@ -75,11 +75,17 @@ spec =
         Attributes.title <$> attributes `shouldBe` Left (Map.singleton "title" ["Would produce duplicate slug: taken"])
 
       it "returns a validation failure when description is absent" $ \conn -> do
-        attributes <- runExceptT $ attributesForInsert conn "Title" "" "Body" mempty
+        attributes <-
+          runExceptT $
+          usingReaderT conn $
+          attributesForInsert "Title" "" "Body" mempty
         Attributes.title <$> attributes `shouldBe` Left (Map.singleton "description" ["Required"])
 
       it "returns a validation failure when body is absent" $ \conn -> do
-        attributes <- runExceptT $ attributesForInsert conn "Title" "Description" "" mempty
+        attributes <-
+          runExceptT $
+          usingReaderT conn $
+          attributesForInsert "Title" "Description" "" mempty
         Attributes.title <$> attributes `shouldBe` Left (Map.singleton "body" ["Required"])
 
     describe "forUpdate" $ do
@@ -91,8 +97,8 @@ spec =
           create (primaryKey user) createParams
         attributes <-
           runExceptT $
+          usingReaderT conn $
           attributesForUpdate
-            conn
             article
             (Just "Title")
             (Just "A description")
@@ -117,8 +123,8 @@ spec =
               {Attributes.title = "Taken", Attributes.slug = "taken"}
         attributes <-
           runExceptT $
+          usingReaderT conn $
           attributesForUpdate
-            conn
             article
             (Just "Taken")
             Nothing
@@ -133,7 +139,9 @@ spec =
           usingReaderT conn $
           create (primaryKey user) createParams
         attributes <-
-          runExceptT $ attributesForUpdate conn article Nothing (Just "") Nothing Nothing
+          runExceptT $
+          usingReaderT conn $
+          attributesForUpdate article Nothing (Just "") Nothing Nothing
         Attributes.title <$> attributes `shouldBe` Left (Map.singleton "description" ["Required"])
 
       it "returns a validation failure when body is absent" $ \conn -> do
@@ -143,5 +151,7 @@ spec =
           usingReaderT conn $
           create (primaryKey user) createParams
         attributes <-
-          runExceptT $ attributesForUpdate conn article Nothing Nothing (Just "") Nothing
+          runExceptT $
+          usingReaderT conn $
+          attributesForUpdate article Nothing Nothing (Just "") Nothing
         Attributes.title <$> attributes `shouldBe` Left (Map.singleton "body" ["Required"])

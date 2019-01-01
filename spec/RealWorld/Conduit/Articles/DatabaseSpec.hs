@@ -3,13 +3,8 @@ module RealWorld.Conduit.Articles.DatabaseSpec
   ) where
 
 import Database.Beam (primaryKey)
-import RealWorld.Conduit.Articles.Database
-  ( create
-  , findBySlug
-  , update
-  )
-import qualified RealWorld.Conduit.Articles.Database.Article as Persisted
 import qualified RealWorld.Conduit.Articles.Article as Article
+import RealWorld.Conduit.Articles.Database (create, update)
 import RealWorld.Conduit.Articles.Database.Article.Attributes
   ( Attributes(Attributes)
   )
@@ -17,7 +12,7 @@ import qualified RealWorld.Conduit.Articles.Database.Article.Attributes as Attri
 import RealWorld.Conduit.Spec.Database (withConnection)
 import qualified RealWorld.Conduit.Users.Database as User
 import qualified RealWorld.Conduit.Users.Database.User.Attributes as UserAttributes
-import Test.Hspec (Spec, around, context, describe, it, shouldBe)
+import Test.Hspec (Spec, around, describe, it, shouldBe)
 
 userCreateParams :: UserAttributes.Attributes Identity
 userCreateParams =
@@ -45,7 +40,8 @@ spec =
     describe "create" $
       it "creates a Article with the supplied params" $ \conn -> do
         user <- liftIO $ User.create conn userCreateParams
-        Right article <- runExceptT $ runReaderT (create (primaryKey user) createParams) conn
+        Right article <-
+          runExceptT $ usingReaderT conn $ create (primaryKey user) createParams
         Article.slug article `shouldBe` "slug"
         Article.title article `shouldBe` "Title"
         Article.description article `shouldBe` "Description."
@@ -72,12 +68,3 @@ spec =
         Article.title updated `shouldBe` Article.title article
         Article.description updated `shouldBe` Article.description article
         Article.body updated `shouldBe` "Now with a bigger body"
-
-    describe "findBySlug" $
-      context "when the article exists" $
-        it "returns (Just matching)" $ \conn -> do
-          user <- liftIO $ User.create conn userCreateParams
-          Right article <- runExceptT $ usingReaderT conn $ create(primaryKey user) createParams
-          found <- findBySlug conn "slug"
-          Persisted.slug <$> found `shouldBe` Just (Article.slug article)
-          Persisted.title <$> found `shouldBe` Just "Title"

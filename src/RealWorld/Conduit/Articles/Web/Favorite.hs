@@ -32,11 +32,11 @@ handler environment authResult slug = do
   user <- loadAuthorizedUser environment authResult
   article <- loadArticle environment (Just (primaryKey user)) slug
   favoriteArticle environment user article
-  pure $ Namespace article
+  Namespace <$> loadArticle environment (Just (primaryKey user)) slug
 
 favoriteArticle :: Environment -> User -> Article -> Handler ()
 favoriteArticle environment user article =
   withDatabaseConnection environment $ \conn ->
-    void $
-    usingReaderT conn $
-    Database.favorite (Persisted.ArticleId (Article.id article)) (primaryKey user)
+    void $ usingReaderT conn $ Database.favorite
+      (Persisted.ArticleId (Article.id article))
+      (primaryKey user)

@@ -37,17 +37,16 @@ handler environment authresult (Namespace params) = do
 
 createArticle :: Environment -> User -> Attributes.Create -> Handler Article
 createArticle environment user params =
+  Handler $
   withDatabaseConnection environment $ \conn -> do
     attributes <-
-      Handler $
       withExceptT failedValidation $
+      usingReaderT conn $
       Database.attributesForInsert
-        conn
         (Attributes.title params)
         (Attributes.description params)
         (Attributes.body params)
         (Attributes.tagList params)
-    Handler $
-      withExceptT (internalServerError . show) $
+    withExceptT (internalServerError . show) $
       usingReaderT conn $
       Database.create (primaryKey user) attributes

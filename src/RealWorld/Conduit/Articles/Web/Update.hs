@@ -61,8 +61,8 @@ updateArticle environment currentUserId article params =
     attributes <-
       Handler $
       withExceptT failedValidation $
+      usingReaderT conn $
       Database.attributesForUpdate
-        conn
         article
         (Attributes.title params)
         (Attributes.description params)
