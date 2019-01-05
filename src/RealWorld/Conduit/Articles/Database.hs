@@ -103,6 +103,7 @@ import RealWorld.Conduit.Users.Database.User
   , UserT(username)
   )
 import RealWorld.Conduit.Users.Profile (Profile(Profile))
+import RealWorld.Conduit.Validation (ValidationErrors, requiredText)
 
 insertArticle
   :: UserId -> UTCTime -> Attributes Identity -> PgInsertReturning Persisted.Article
@@ -450,8 +451,6 @@ selectTags article =
     (all_ (conduitArticleTags conduitDb))
     ((`references_` article) . ArticleTag.article)
 
-type ValidationErrors = Map Text [Text]
-
 generateSlug :: Text -> Text
 generateSlug = Text.intercalate "-" . Text.words . Text.toLower . Text.filter
   ((||) <$> Char.isAlphaNum <*> Char.isSpace)
@@ -470,32 +469,18 @@ slugExists slug = do
       guard_ (Persisted.slug article ==. val_ slug)
       pure article
 
-unique
-  :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
-  => (a -> m Bool)
-  -> ValidationErrors
-  -> a
-  -> Compose m (Validation ValidationErrors) a
-unique checker err value = Compose $ do
-  taken <- checker value
-  pure $ if taken then Failure err else Success value
-
-require :: Text -> Text -> Validation ValidationErrors Text
-require attr value =
-  if Text.null value
-    then Failure (Map.singleton attr ["Required"])
-    else Success value
-
-ensureTitleGeneratesUniqueSlug
+titleGeneratingUniqueSlug
   :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
   => Text
   -> Compose m (Validation ValidationErrors) Text
-ensureTitleGeneratesUniqueSlug title =
-  title <$
-  unique
-    slugExists
-    (Map.singleton "title" ["Would produce duplicate slug: " <> slug])
-    slug
+titleGeneratingUniqueSlug title =
+  Compose $ do
+    taken <- slugExists slug
+    pure $
+      if taken
+        then Failure $
+             Map.singleton "title" ["Would produce duplicate slug: " <> slug]
+        else Success title
   where
     slug = generateSlug title
 
@@ -504,13 +489,7 @@ makeTitle
   => Text
   -> Compose m (Validation ValidationErrors) Text
 makeTitle title =
-  pure (require "title" title) *> ensureTitleGeneratesUniqueSlug title
-
-makeDescription :: Text -> Validation ValidationErrors Text
-makeDescription = require "description"
-
-makeBody :: Text -> Validation ValidationErrors Text
-makeBody = require "body"
+  requiredText "title" title *> titleGeneratingUniqueSlug title
 
 attributesForInsert
   :: ( MonadIO m
@@ -527,8 +506,8 @@ attributesForInsert title description body tags =
   (validation throwError pure =<<) . getCompose $
   Attributes
     <$> makeTitle title
-    <*> Compose (pure (makeDescription description))
-    <*> Compose (pure (makeBody body))
+    <*> requiredText "description" description
+    <*> requiredText "body" body
     <*> pure tags
 
 makeUpdateTitle
@@ -537,7 +516,7 @@ makeUpdateTitle
   -> Text
   -> Compose m (Validation ValidationErrors) Text
 makeUpdateTitle current title
-  | generateSlug title == current = Compose . pure $ require "title" title
+  | generateSlug title == current = requiredText "title" title
   | otherwise = makeTitle title
 
 attributesForUpdate
@@ -556,6 +535,6 @@ attributesForUpdate current title description body tags =
   (validation throwError pure =<<) . getCompose $
   Attributes
     <$> traverse (makeUpdateTitle (Article.slug current)) title
-    <*> traverse (Compose . pure . makeDescription) description
-    <*> traverse (Compose . pure . makeBody) body
+    <*> traverse (requiredText "description") description
+    <*> traverse (requiredText "body") body
     <*> pure tags

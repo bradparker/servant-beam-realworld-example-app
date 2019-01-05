@@ -120,6 +120,7 @@ library
       RealWorld.Conduit.Users.Web.Profiles.Unfollow
       RealWorld.Conduit.Users.Web.Profiles.View
       RealWorld.Conduit.Users.Web.Register
+      RealWorld.Conduit.Validation
       RealWorld.Conduit.Web
       RealWorld.Conduit.Web.API
       RealWorld.Conduit.Web.Auth

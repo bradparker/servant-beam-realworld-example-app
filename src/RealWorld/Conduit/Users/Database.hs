@@ -84,6 +84,7 @@ import RealWorld.Conduit.Users.Database.User
 import RealWorld.Conduit.Users.Profile (Profile(Profile))
 import RealWorld.Conduit.Users.User.Attributes (Attributes(Attributes))
 import qualified RealWorld.Conduit.Users.User.Attributes as Attributes
+import RealWorld.Conduit.Validation (ValidationErrors, requiredText)
 
 insertUser
   :: Attributes Identity -> PgInsertReturning User
@@ -188,8 +189,6 @@ unfollow followerId followeeId = do
     $ \(Follow follower followee) ->
         follower ==. val_ followerId &&. followee ==. val_ followeeId
 
-type ValidationErrors = Map Text [Text]
-
 encryptPassword :: Text -> IO Text
 encryptPassword password =
   decodeUtf8 . getEncryptedPass <$> encryptPassIO' (Pass (encodeUtf8 password))
@@ -208,10 +207,7 @@ usernameExists username = do
   conn <- ask
   fromMaybe False <$> runSelect conn (select query) maybeRow
   where
-    query = pure $ exists_ $ do
-      user <- all_ (conduitUsers conduitDb)
-      guard_ (User.username user ==. val_ username)
-      pure user
+    query = pure $ exists_ $ selectUserBy User.username (val_ username)
 
 emailExists
   :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
@@ -221,16 +217,13 @@ emailExists email = do
   conn <- ask
   fromMaybe False <$> runSelect conn (select query) maybeRow
   where
-    query = pure $ exists_ $ do
-      user <- all_ (conduitUsers conduitDb)
-      guard_ (User.email user ==. val_ email)
-      pure user
+    query = pure $ exists_ $ selectUserBy User.email (val_ email)
 
-makeEmail
+uniqueEmail
   :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
   => Text
   -> Compose m (Validation ValidationErrors) Text
-makeEmail value =
+uniqueEmail value =
   Compose $ do
     exists <- emailExists value
     pure $
@@ -238,17 +231,31 @@ makeEmail value =
         then Failure (Map.singleton "email" ["Taken"])
         else Success value
 
-makeUsername
+makeEmail
   :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
   => Text
   -> Compose m (Validation ValidationErrors) Text
-makeUsername value =
+makeEmail email =
+  requiredText "email" email *> uniqueEmail email
+
+uniqueUsername
+  :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
+  => Text
+  -> Compose m (Validation ValidationErrors) Text
+uniqueUsername value =
   Compose $ do
     exists <- usernameExists value
     pure $
       if exists
         then Failure (Map.singleton "username" ["Taken"])
         else Success value
+
+makeUsername
+  :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
+  => Text
+  -> Compose m (Validation ValidationErrors) Text
+makeUsername username =
+  requiredText "username" username *> uniqueUsername username
 
 attributesForInsert
   :: ( MonadIO m
@@ -262,14 +269,14 @@ attributesForInsert
   -> Text
   -> Maybe Text
   -> m (Attributes Identity)
-attributesForInsert passwordVal emailVal usernameVal bioVal imageVal =
+attributesForInsert password email username bio image =
   (validation throwError pure =<<) . getCompose $
   Attributes
-    <$> makePassword passwordVal
-    <*> makeEmail emailVal
-    <*> makeUsername usernameVal
-    <*> pure bioVal
-    <*> pure imageVal
+    <$> makePassword password
+    <*> makeEmail email
+    <*> makeUsername username
+    <*> pure bio
+    <*> pure image
 
 makeUpdateEmail
   :: (MonadIO m, MonadReader Connection m, MonadBaseControl IO m)
@@ -302,14 +309,14 @@ attributesForUpdate
   -> Maybe Text
   -> Maybe (Maybe Text)
   -> m (Attributes Maybe)
-attributesForUpdate current passwordVal emailVal usernameVal bioVal imageVal =
+attributesForUpdate current password email username bio image =
   (validation throwError pure =<<) . getCompose $
   Attributes
-    <$> traverse makePassword passwordVal
-    <*> traverse (makeUpdateEmail current) emailVal
-    <*> traverse (makeUpdateUsername current) usernameVal
-    <*> pure bioVal
-    <*> pure imageVal
+    <$> traverse makePassword password
+    <*> traverse (makeUpdateEmail current) email
+    <*> traverse (makeUpdateUsername current) username
+    <*> pure bio
+    <*> pure image
 
 selectUserBy
   :: HasSqlEqualityCheck PgExpressionSyntax a
