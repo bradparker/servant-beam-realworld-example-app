@@ -5,10 +5,12 @@ let
   packageWithTools = nixpkgs.haskell.lib.addBuildDepends package tools;
 in
   nixpkgs.lib.overrideDerivation packageWithTools.env (drv: {
-    shellHook = drv.shellHook + "
-      mkdir -p $PWD/database/pgdata
+    shellHook = drv.shellHook + ''
       export PGDATA=$PWD/database/pgdata
+      mkdir -p $PGDATA
 
       mkdir -p $PWD/logs
-    ";
+
+      eval "$(direnv hook $SHELL)"
+    '';
   })
