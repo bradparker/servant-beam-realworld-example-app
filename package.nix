@@ -1,12 +1,13 @@
 { mkDerivation, aeson, base-noprelude, beam-core, beam-postgres
-, bytestring, conduit, containers, data-default, hspec, hspec-wai
-, hspec-wai-json, http-types, insert-ordered-containers, jose, lens
-, monad-control, mtl, optparse-applicative, postgresql-simple
-, relude, resource-pool, scrypt, servant, servant-auth
-, servant-auth-server, servant-auth-swagger, servant-server
-, servant-swagger, servant-swagger-ui, servant-swagger-ui-core
-, stdenv, swagger2, text, time, transformers, validation, vector
-, wai, wai-extra, warp
+, bytestring, case-insensitive, conduit, containers, data-default
+, hspec, hspec-wai, hspec-wai-json, http-types
+, insert-ordered-containers, jose, lens, monad-control, mtl
+, optparse-applicative, postgresql-simple, relude, resource-pool
+, scrypt, servant, servant-auth, servant-auth-server
+, servant-auth-swagger, servant-server, servant-swagger
+, servant-swagger-ui, servant-swagger-ui-core, stdenv, swagger2
+, text, time, transformers, validation, vector, wai, wai-cors
+, wai-extra, warp
 }:
 mkDerivation {
   pname = "realworld-conduit";
@@ -15,32 +16,34 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    aeson base-noprelude beam-core beam-postgres bytestring conduit
-    containers data-default http-types insert-ordered-containers jose
-    lens monad-control mtl optparse-applicative postgresql-simple
-    relude resource-pool scrypt servant servant-auth
-    servant-auth-server servant-auth-swagger servant-server
-    servant-swagger servant-swagger-ui servant-swagger-ui-core swagger2
-    text time transformers validation vector wai wai-extra warp
-  ];
-  executableHaskellDepends = [
-    aeson base-noprelude beam-core beam-postgres bytestring conduit
-    containers data-default http-types insert-ordered-containers jose
-    lens monad-control mtl optparse-applicative postgresql-simple
-    relude resource-pool scrypt servant servant-auth
-    servant-auth-server servant-auth-swagger servant-server
-    servant-swagger servant-swagger-ui servant-swagger-ui-core swagger2
-    text time transformers validation vector wai wai-extra warp
-  ];
-  testHaskellDepends = [
-    aeson base-noprelude beam-core beam-postgres bytestring conduit
-    containers data-default hspec hspec-wai hspec-wai-json http-types
+    aeson base-noprelude beam-core beam-postgres bytestring
+    case-insensitive conduit containers data-default http-types
     insert-ordered-containers jose lens monad-control mtl
     optparse-applicative postgresql-simple relude resource-pool scrypt
     servant servant-auth servant-auth-server servant-auth-swagger
     servant-server servant-swagger servant-swagger-ui
     servant-swagger-ui-core swagger2 text time transformers validation
-    vector wai wai-extra warp
+    vector wai wai-cors wai-extra warp
+  ];
+  executableHaskellDepends = [
+    aeson base-noprelude beam-core beam-postgres bytestring
+    case-insensitive conduit containers data-default http-types
+    insert-ordered-containers jose lens monad-control mtl
+    optparse-applicative postgresql-simple relude resource-pool scrypt
+    servant servant-auth servant-auth-server servant-auth-swagger
+    servant-server servant-swagger servant-swagger-ui
+    servant-swagger-ui-core swagger2 text time transformers validation
+    vector wai wai-cors wai-extra warp
+  ];
+  testHaskellDepends = [
+    aeson base-noprelude beam-core beam-postgres bytestring
+    case-insensitive conduit containers data-default hspec hspec-wai
+    hspec-wai-json http-types insert-ordered-containers jose lens
+    monad-control mtl optparse-applicative postgresql-simple relude
+    resource-pool scrypt servant servant-auth servant-auth-server
+    servant-auth-swagger servant-server servant-swagger
+    servant-swagger-ui servant-swagger-ui-core swagger2 text time
+    transformers validation vector wai wai-cors wai-extra warp
   ];
   description = "Exemplary fullstack Medium.com clone powered by Servant and Beam";
   license = stdenv.lib.licenses.bsd3;
