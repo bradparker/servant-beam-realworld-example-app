@@ -37,6 +37,7 @@ common deps
     , beam-core
     , beam-postgres
     , bytestring
+    , case-insensitive
     , conduit
     , containers
     , data-default
@@ -67,6 +68,7 @@ common deps
     , vector
     , wai
     , wai-extra
+    , wai-cors
     , warp
 
 library

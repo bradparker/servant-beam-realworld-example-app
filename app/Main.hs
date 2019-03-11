@@ -3,8 +3,10 @@ module Main
   ) where
 
 import Data.Aeson (ToJSON, encode)
+import qualified Data.CaseInsensitive as CI
 import Data.Default (def)
 import Data.Map (singleton)
+import Network.Wai.Middleware.Cors (simpleCorsResourcePolicy, cors, corsRequestHeaders, corsMethods)
 import Network.Wai (Middleware)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.RequestLogger
@@ -39,4 +41,8 @@ main = do
   environment <- Environment.new options
   logger <- jsonLogger
   putStrLn (encode (startupEvent options))
-  run (port options) (logger (app environment))
+  let resourcePolicy = simpleCorsResourcePolicy 
+        { corsRequestHeaders = [CI.mk "Content-Type", CI.mk "Authorization"] 
+        , corsMethods = ["PUT"]
+        }
+  run (port options) (logger . (cors . const . Just $ resourcePolicy ) $ (app environment))
