@@ -43,6 +43,6 @@ main = do
   putStrLn (encode (startupEvent options))
   let resourcePolicy = simpleCorsResourcePolicy 
         { corsRequestHeaders = [CI.mk "Content-Type", CI.mk "Authorization"] 
-        , corsMethods = ["PUT"]
+        , corsMethods = ["PUT", "DELETE"]
         }
   run (port options) (logger . (cors . const . Just $ resourcePolicy ) $ (app environment))
