@@ -4,7 +4,7 @@ module RealWorld.Conduit.Users.Web.Current.Update
   ) where
 
 import Control.Monad.Trans.Except (withExceptT)
-import Data.Aeson (FromJSON)
+import Data.Aeson (FromJSON(parseJSON), (.:!), withObject)
 import Data.Swagger (ToSchema)
 import RealWorld.Conduit.Environment (Environment(..))
 import qualified RealWorld.Conduit.Users.Database as Database
@@ -36,8 +36,16 @@ data UserUpdate = UserUpdate
   }
 
 deriving instance Generic UserUpdate
-deriving instance FromJSON UserUpdate
 deriving instance ToSchema UserUpdate
+
+instance FromJSON UserUpdate where
+  parseJSON = withObject "UserUpdate" $ \v ->
+    UserUpdate
+      <$> v .:! "password"
+      <*> v .:! "email"
+      <*> v .:! "username"
+      <*> v .:! "bio"
+      <*> v .:! "image"
 
 handler ::
      Environment
