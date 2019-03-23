@@ -18,12 +18,12 @@ import Network.Wai (Application)
 import Network.Wai.Test (SResponse(simpleBody, simpleStatus))
 import Prelude hiding (ByteString)
 import RealWorld.Conduit.Environment (Environment)
-import RealWorld.Conduit.Spec.Web (withApp)
+import RealWorld.Conduit.Spec.Web (withApp, authHeader)
+import RealWorld.Conduit.Users.Profile (Profile)
+import qualified RealWorld.Conduit.Users.Profile as Profile
 import RealWorld.Conduit.Users.Web (server, users)
 import qualified RealWorld.Conduit.Users.Web.Account as Account
 import RealWorld.Conduit.Users.Web.Account (Account)
-import RealWorld.Conduit.Users.Profile (Profile)
-import qualified RealWorld.Conduit.Users.Profile as Profile
 import RealWorld.Conduit.Users.Web.Register (Registrant(Registrant))
 import qualified RealWorld.Conduit.Web as Web
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace), unNamespace)
@@ -163,7 +163,7 @@ spec =
               lift $
                 get'
                   "/api/user"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
           liftIO $ do
             simpleStatus <$> res `shouldBe` Right status200
             Account.username <$>
@@ -212,7 +212,7 @@ spec =
               lift $
                 put'
                   "/api/user"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                     user: {
                       email: "changed@mail.com"
@@ -231,7 +231,7 @@ spec =
               void $ lift $
                 put'
                   "/api/user"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                     user: {
                       image: "https://example.com/image.png"
@@ -240,7 +240,7 @@ spec =
               lift $
                 put'
                   "/api/user"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                     user: {
                       image: null
@@ -261,7 +261,7 @@ spec =
               lift $
                 put'
                   "/api/user"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                     user: {
                       email: "ta@ken.com"
@@ -327,7 +327,7 @@ spec =
                 lift $
                   post'
                     "/api/profiles/followee/follow"
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
                     ""
             liftIO $ do
               simpleStatus <$> res `shouldBe` Right status200
@@ -345,7 +345,7 @@ spec =
                 lift $
                   post'
                     "/api/profiles/followee/follow"
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
                     ""
             liftIO $
               simpleStatus <$> res `shouldBe` Right status404
@@ -376,7 +376,7 @@ spec =
                 lift $
                   delete'
                     "/api/profiles/followee/follow"
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
             liftIO $ do
               simpleStatus <$> res `shouldBe` Right status200
               let profile = profileFromResponse =<< res
@@ -393,6 +393,6 @@ spec =
                 lift $
                   delete'
                     "/api/profiles/followee/follow"
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
             liftIO $
               simpleStatus <$> res `shouldBe` Right status404
