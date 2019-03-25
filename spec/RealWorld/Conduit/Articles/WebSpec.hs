@@ -26,7 +26,7 @@ import RealWorld.Conduit.Articles.Article.Attributes
   )
 import qualified RealWorld.Conduit.Articles.Article.Attributes as Attributes
 import RealWorld.Conduit.Environment (Environment)
-import RealWorld.Conduit.Spec.Web (withApp)
+import RealWorld.Conduit.Spec.Web (withApp, authHeader)
 import qualified RealWorld.Conduit.Users.Web as Users
 import RealWorld.Conduit.Users.Web (Users)
 import RealWorld.Conduit.Users.Web.Account (Account)
@@ -67,7 +67,7 @@ create account =
   ExceptT . (articleFromResponse <$>) .
   post'
     "/api/articles"
-    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))] .
+    [authHeader account] .
   encode . articleNamespace
 
 createParams :: Attributes.Create
@@ -85,7 +85,7 @@ favorite account slug =
   articleFromResponse <$>
   post'
     ("/api/articles/" <> encodeUtf8 slug <> "/favorite")
-    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+    [authHeader account]
     ""
 
 follow :: Account -> Text -> ExceptT String WaiSession ()
@@ -94,7 +94,7 @@ follow account username =
   lift $
   post'
     ("/api/profiles/" <> encodeUtf8 username <> "/follow")
-    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+    [authHeader account]
     ""
 
 decodeArticlesNamespace ::
@@ -126,7 +126,7 @@ spec =
               lift $
                 post'
                   "/api/articles"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                     article: {
                       title: "My cool thing",
@@ -157,7 +157,7 @@ spec =
               lift $
                 post'
                   "/api/articles"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                     article: {
                       title: "Taken",
@@ -220,7 +220,7 @@ spec =
               lift $
                 put'
                   "/api/articles/nah"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                       article: {
                         title: "Updated title",
@@ -240,7 +240,7 @@ spec =
                 lift $
                   put'
                     (encodeUtf8 ("/api/articles/" <> Article.slug article))
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
                     [json|{
                         article: {
                           title: "Updated title",
@@ -268,7 +268,7 @@ spec =
                 lift $
                   put'
                     (encodeUtf8 ("/api/articles/" <> Article.slug article))
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
                     [json|{
                         article: {
                           title: "Taken"
@@ -307,7 +307,7 @@ spec =
               lift $
                 delete'
                   (encodeUtf8 ("/api/articles/" <> Article.slug article))
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
           liftIO $ simpleStatus <$> res `shouldBe` Right status204
 
     describe "GET /api/articles" $ do
@@ -586,7 +586,7 @@ spec =
             lift $
               get'
                 "/api/articles/feed"
-                [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                [authHeader account]
         liftIO $ do
           let articles = articlesFromResponse =<< res
           sort . (Article.title <$>) <$>

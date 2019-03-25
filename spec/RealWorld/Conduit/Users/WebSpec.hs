@@ -18,12 +18,12 @@ import Network.Wai (Application)
 import Network.Wai.Test (SResponse(simpleBody, simpleStatus))
 import Prelude hiding (ByteString)
 import RealWorld.Conduit.Environment (Environment)
-import RealWorld.Conduit.Spec.Web (withApp)
+import RealWorld.Conduit.Spec.Web (withApp, authHeader)
+import RealWorld.Conduit.Users.Profile (Profile)
+import qualified RealWorld.Conduit.Users.Profile as Profile
 import RealWorld.Conduit.Users.Web (server, users)
 import qualified RealWorld.Conduit.Users.Web.Account as Account
 import RealWorld.Conduit.Users.Web.Account (Account)
-import RealWorld.Conduit.Users.Profile (Profile)
-import qualified RealWorld.Conduit.Users.Profile as Profile
 import RealWorld.Conduit.Users.Web.Register (Registrant(Registrant))
 import qualified RealWorld.Conduit.Web as Web
 import RealWorld.Conduit.Web.Namespace (Namespace(Namespace), unNamespace)
@@ -163,7 +163,7 @@ spec =
               lift $
                 get'
                   "/api/user"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
           liftIO $ do
             simpleStatus <$> res `shouldBe` Right status200
             Account.username <$>
@@ -203,7 +203,7 @@ spec =
                   }|]
           liftIO $ simpleStatus <$> res `shouldBe` Right status401
 
-      context "when provided a valid body of attributes to update" $
+      context "when provided a valid body of attributes to update" $ do
         it "responds with 200 and a json encoded response of the updated user" $ do
           res <-
             runExceptT $ do
@@ -212,7 +212,7 @@ spec =
               lift $
                 put'
                   "/api/user"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                     user: {
                       email: "changed@mail.com"
@@ -222,6 +222,34 @@ spec =
             simpleStatus <$> res `shouldBe` Right status200
             Account.email <$>
               (accountFromResponse =<< res) `shouldBe` Right "changed@mail.com"
+
+        it "allows image to be assigned to Nothing" $ do
+          res <-
+            runExceptT $ do
+              account <-
+                ExceptT $ register $ Registrant "secret123" "e@mail.com" "aname"
+              void $ lift $
+                put'
+                  "/api/user"
+                  [authHeader account]
+                  [json|{
+                    user: {
+                      image: "https://example.com/image.png"
+                    }
+                  }|]
+              lift $
+                put'
+                  "/api/user"
+                  [authHeader account]
+                  [json|{
+                    user: {
+                      image: null
+                    }
+                  }|]
+          liftIO $ do
+            simpleStatus <$> res `shouldBe` Right status200
+            Account.image <$>
+              (accountFromResponse =<< res) `shouldBe` Right Nothing
 
       context "when provided an invalid body of attributes to update" $
         it "responds with 422 and a json encoded error response" $ do
@@ -233,7 +261,7 @@ spec =
               lift $
                 put'
                   "/api/user"
-                  [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                  [authHeader account]
                   [json|{
                     user: {
                       email: "ta@ken.com"
@@ -299,7 +327,7 @@ spec =
                 lift $
                   post'
                     "/api/profiles/followee/follow"
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
                     ""
             liftIO $ do
               simpleStatus <$> res `shouldBe` Right status200
@@ -317,7 +345,7 @@ spec =
                 lift $
                   post'
                     "/api/profiles/followee/follow"
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
                     ""
             liftIO $
               simpleStatus <$> res `shouldBe` Right status404
@@ -348,7 +376,7 @@ spec =
                 lift $
                   delete'
                     "/api/profiles/followee/follow"
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
             liftIO $ do
               simpleStatus <$> res `shouldBe` Right status200
               let profile = profileFromResponse =<< res
@@ -365,6 +393,6 @@ spec =
                 lift $
                   delete'
                     "/api/profiles/followee/follow"
-                    [(hAuthorization, encodeUtf8 ("Bearer " <> Account.token account))]
+                    [authHeader account]
             liftIO $
               simpleStatus <$> res `shouldBe` Right status404
