@@ -78,3 +78,9 @@ With the caveat that the Authorization header format is _slightly_ different, th
   Which might look something like this:
 
   [![asciicast](https://asciinema.org/a/YhNioSPZ4SKkHTpLxO7lzTogx.png)](https://asciinema.org/a/YhNioSPZ4SKkHTpLxO7lzTogx)
+
+5. Run the app.
+
+  ```
+  $ cabal new-run exe:realworld-conduit
+  ```
