@@ -66,7 +66,7 @@ With the caveat that the Authorization header format is _slightly_ different, th
 4. Run the test suite.
 
   ```
-  $ cabal test
+  $ cabal new-test
   ```
 
   You can run these in a watch mode using ghcid:
