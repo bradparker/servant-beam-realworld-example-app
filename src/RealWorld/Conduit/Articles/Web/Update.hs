@@ -29,8 +29,6 @@ import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 
 type Update =
-  "api" :>
-  "articles" :>
   Capture "slug" Text :>
   ReqBody '[JSON] (Namespace "article" Attributes.Update) :>
   Auth '[JWT] Claim :>

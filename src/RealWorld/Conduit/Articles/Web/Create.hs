@@ -20,8 +20,6 @@ import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 
 type Create =
-  "api" :>
-  "articles" :>
   Auth '[JWT] Claim :>
   ReqBody '[JSON] (Namespace "article" Attributes.Create) :>
   PostCreated '[JSON] (Namespace "article" Article)

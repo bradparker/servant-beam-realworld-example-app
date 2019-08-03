@@ -23,28 +23,31 @@ import qualified RealWorld.Conduit.Articles.Web.Update as Update
 import RealWorld.Conduit.Articles.Web.View (View)
 import qualified RealWorld.Conduit.Articles.Web.View as View
 import RealWorld.Conduit.Environment (Environment)
-import Servant ((:<|>)((:<|>)), Server)
+import Servant ((:>), (:<|>)((:<|>)), Server)
 
-type Articles =
-  All :<|>
-  Feed :<|>
-  Create :<|>
-  View :<|>
-  Update :<|>
-  Destroy :<|>
-  Favorite :<|>
-  Unfavorite
+type Articles
+  = "api" :>
+    "articles" :>
+      (    All
+      :<|> Feed
+      :<|> Create
+      :<|> View
+      :<|> Update
+      :<|> Destroy
+      :<|> Favorite
+      :<|> Unfavorite
+      )
 
 server :: Environment -> Server Articles
 server environment =
-  All.handler environment :<|>
-  Feed.handler environment :<|>
-  Create.handler environment :<|>
-  View.handler environment :<|>
-  Update.handler environment :<|>
-  Destroy.handler environment :<|>
-  Favorite.handler environment :<|>
-  Unfavorite.handler environment
+  All.handler environment
+    :<|> Feed.handler environment
+    :<|> Create.handler environment
+    :<|> View.handler environment
+    :<|> Update.handler environment
+    :<|> Destroy.handler environment
+    :<|> Favorite.handler environment
+    :<|> Unfavorite.handler environment
 
 articles :: Proxy Articles
 articles = Proxy

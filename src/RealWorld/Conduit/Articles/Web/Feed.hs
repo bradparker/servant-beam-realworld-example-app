@@ -16,8 +16,6 @@ import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 
 type Feed =
-  "api" :>
-  "articles" :>
   "feed" :>
   QueryParam "limit" Integer :>
   QueryParam "offset" Integer :>

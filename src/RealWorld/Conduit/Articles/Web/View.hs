@@ -19,8 +19,6 @@ import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 
 type View =
-  "api" :>
-  "articles" :>
   Capture "slug" Text :>
   Auth '[JWT] Claim :>
   Get '[JSON] (Namespace "article" Article)

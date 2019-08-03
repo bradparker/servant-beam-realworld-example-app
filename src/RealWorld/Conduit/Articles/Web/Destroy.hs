@@ -22,8 +22,6 @@ import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 
 type Destroy =
-  "api" :>
-  "articles" :>
   Capture "slug" Text :>
   Auth '[JWT] Claim :>
   DeleteNoContent '[JSON] NoContent

@@ -20,15 +20,13 @@ import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 
 type Favorite =
-  Auth '[JWT] Claim :>
-  "api" :>
-  "articles" :>
   Capture "slug" Text :>
   "favorite" :>
+  Auth '[JWT] Claim :>
   Post '[JSON] (Namespace "article" Article)
 
-handler :: Environment -> AuthResult Claim -> Text -> Handler (Namespace "article" Article)
-handler environment authResult slug = do
+handler :: Environment -> Text -> AuthResult Claim -> Handler (Namespace "article" Article)
+handler environment slug authResult = do
   user <- loadAuthorizedUser environment authResult
   article <- loadArticle environment (Just (primaryKey user)) slug
   favoriteArticle environment user article

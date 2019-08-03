@@ -18,8 +18,6 @@ import Servant.Auth.Server (AuthResult(..))
 import Servant.Auth.Swagger (Auth, JWT)
 
 type All =
-  "api" :>
-  "articles" :>
   QueryParam "limit" Integer :>
   QueryParam "offset" Integer :>
   QueryParams "tag" Text :>
